@@ -1,0 +1,45 @@
+{
+  "model": "LightGBM (production seed)",
+  "scale_pos_weight": 5.236357966947303,
+  "best_params": {
+    "learning_rate": 0.03,
+    "max_depth": 4,
+    "n_estimators": 300,
+    "num_leaves": 31
+  },
+  "best_cv_pr_auc": 0.6007095039428962,
+  "tree_val_uncalibrated": {
+    "auc_roc": 0.8365541301703898,
+    "pr_auc": 0.5759460207469144,
+    "brier": 0.15448337162098744,
+    "logloss": 0.47478690552432035
+  },
+  "tree_calibration_val_eval": {
+    "before": {
+      "slope": 1.0638874795440831,
+      "intercept": -1.5733307605920541,
+      "brier": 0.1546540193515719,
+      "logloss": 0.47470715727142804
+    },
+    "after": {
+      "slope": 0.9502306465985106,
+      "intercept": -0.06564585513146204,
+      "brier": 0.09813715901876523,
+      "logloss": 0.3381955750233647
+    }
+  },
+  "logreg_val_uncalibrated": {
+    "auc_roc": 0.8409643675495404,
+    "pr_auc": 0.5861005027940087,
+    "brier": 0.15575238552826223,
+    "logloss": 0.4799119651025259
+  },
+  "logreg_calibration_val_eval_after": {
+    "slope": 0.9655064496244049,
+    "intercept": -0.045549838904620776,
+    "brier": 0.0970370151463248,
+    "logloss": 0.32258292564581215
+  },
+  "pr_auc_winner_synthetic": "LogReg",
+  "pr_auc_gap_logreg_minus_tree": 0.010154482047094349
+}
