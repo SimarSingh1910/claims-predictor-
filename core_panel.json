@@ -1,0 +1,896 @@
+{
+  "_meta": {
+    "description": "Per-feature importance for the partial-input wrapper. IMPORTANT panel is CLINICALLY DEFINED (authoritative), not coefficient-derived. model_coef shows the synthetic model's current weight, recorded only to expose the clinical-vs-model gap.",
+    "n_features": 115,
+    "n_important": 31,
+    "near_zero_threshold": 0.05,
+    "do_not_retrain": true
+  },
+  "features": [
+    {
+      "feature": "CUG",
+      "important": false,
+      "group": null,
+      "model_coef": null
+    },
+    {
+      "feature": "employee_id",
+      "important": false,
+      "group": null,
+      "model_coef": null
+    },
+    {
+      "feature": "name",
+      "important": false,
+      "group": null,
+      "model_coef": null
+    },
+    {
+      "feature": "sex",
+      "important": false,
+      "group": null,
+      "model_coef": 0.006724
+    },
+    {
+      "feature": "age",
+      "important": false,
+      "group": null,
+      "model_coef": 0.313389
+    },
+    {
+      "feature": "height_cm",
+      "important": false,
+      "group": null,
+      "model_coef": 0.057752
+    },
+    {
+      "feature": "weight_kg",
+      "important": false,
+      "group": null,
+      "model_coef": 0.088999
+    },
+    {
+      "feature": "bmi",
+      "important": false,
+      "group": null,
+      "model_coef": 0.217088
+    },
+    {
+      "feature": "ahc_date",
+      "important": false,
+      "group": null,
+      "model_coef": null
+    },
+    {
+      "feature": "chronic_disease",
+      "important": false,
+      "group": null,
+      "model_coef": null
+    },
+    {
+      "feature": "fbs_mg_dl",
+      "important": true,
+      "group": "Glucose",
+      "model_coef": 0.031128
+    },
+    {
+      "feature": "ppbs_mg_dl",
+      "important": false,
+      "group": null,
+      "model_coef": 0.013533
+    },
+    {
+      "feature": "systolic_bp_mmhg",
+      "important": false,
+      "group": null,
+      "model_coef": 0.30039
+    },
+    {
+      "feature": "diastolic_bp_mmhg",
+      "important": false,
+      "group": null,
+      "model_coef": 0.00702
+    },
+    {
+      "feature": "total_cholesterol_mg_dl",
+      "important": true,
+      "group": "Lipid Profile",
+      "model_coef": 0.070404
+    },
+    {
+      "feature": "hdl_mg_dl",
+      "important": true,
+      "group": "Lipid Profile",
+      "model_coef": 0.103216
+    },
+    {
+      "feature": "ldl_mg_dl",
+      "important": true,
+      "group": "Lipid Profile",
+      "model_coef": 0.016586
+    },
+    {
+      "feature": "triglycerides_mg_dl",
+      "important": true,
+      "group": "Lipid Profile",
+      "model_coef": 0.098736
+    },
+    {
+      "feature": "vldl_mg_dl",
+      "important": false,
+      "group": null,
+      "model_coef": 0.085629
+    },
+    {
+      "feature": "non_hdl_cholesterol_mg_dl",
+      "important": false,
+      "group": null,
+      "model_coef": 0.098432
+    },
+    {
+      "feature": "bun_mg_dl",
+      "important": true,
+      "group": "Kidney Profile",
+      "model_coef": 0.001079
+    },
+    {
+      "feature": "creatinine_mg_dl",
+      "important": true,
+      "group": "Kidney Profile",
+      "model_coef": 0.27764
+    },
+    {
+      "feature": "egfr_ml_min_173m2",
+      "important": false,
+      "group": null,
+      "model_coef": 0.321954
+    },
+    {
+      "feature": "calcium_mg_dl",
+      "important": true,
+      "group": "Kidney Profile",
+      "model_coef": 0.010598
+    },
+    {
+      "feature": "sodium_meq_l",
+      "important": true,
+      "group": "Electrolytes",
+      "model_coef": 0.004913
+    },
+    {
+      "feature": "potassium_meq_l",
+      "important": true,
+      "group": "Electrolytes",
+      "model_coef": 0.030703
+    },
+    {
+      "feature": "chloride_meq_l",
+      "important": true,
+      "group": "Electrolytes",
+      "model_coef": 0.014247
+    },
+    {
+      "feature": "bilirubin_total_mg_dl",
+      "important": true,
+      "group": "Liver Function",
+      "model_coef": 0.006436
+    },
+    {
+      "feature": "bilirubin_direct_mg_dl",
+      "important": false,
+      "group": null,
+      "model_coef": 0.011922
+    },
+    {
+      "feature": "ast_sgot_u_l",
+      "important": true,
+      "group": "Liver Function",
+      "model_coef": 0.006789
+    },
+    {
+      "feature": "alt_sgpt_u_l",
+      "important": true,
+      "group": "Liver Function",
+      "model_coef": 0.016166
+    },
+    {
+      "feature": "alp_u_l",
+      "important": true,
+      "group": "Liver Function",
+      "model_coef": 0.00943
+    },
+    {
+      "feature": "ggt_u_l",
+      "important": true,
+      "group": "Liver Function",
+      "model_coef": 0.006055
+    },
+    {
+      "feature": "total_protein_g_dl",
+      "important": true,
+      "group": "Liver Function",
+      "model_coef": 0.030217
+    },
+    {
+      "feature": "albumin_g_dl",
+      "important": true,
+      "group": "Liver Function",
+      "model_coef": 0.076986
+    },
+    {
+      "feature": "globulin_g_dl",
+      "important": false,
+      "group": null,
+      "model_coef": 0.016927
+    },
+    {
+      "feature": "rbc_million_cmm",
+      "important": true,
+      "group": "Hemogram",
+      "model_coef": 0.002564
+    },
+    {
+      "feature": "haemoglobin_g_dl",
+      "important": true,
+      "group": "Hemogram",
+      "model_coef": 0.298747
+    },
+    {
+      "feature": "pcv_percent",
+      "important": false,
+      "group": null,
+      "model_coef": 0.100431
+    },
+    {
+      "feature": "mcv_fl",
+      "important": false,
+      "group": null,
+      "model_coef": 0.005192
+    },
+    {
+      "feature": "mch_pg",
+      "important": false,
+      "group": null,
+      "model_coef": 0.016493
+    },
+    {
+      "feature": "mchc_percent",
+      "important": false,
+      "group": null,
+      "model_coef": 0.013888
+    },
+    {
+      "feature": "rdw_cv_percent",
+      "important": false,
+      "group": null,
+      "model_coef": 0.013008
+    },
+    {
+      "feature": "rdw_sd_fl",
+      "important": false,
+      "group": null,
+      "model_coef": 0.003163
+    },
+    {
+      "feature": "total_wbc_cells_cumm",
+      "important": true,
+      "group": "Hemogram",
+      "model_coef": 0.015064
+    },
+    {
+      "feature": "neutrophils_percent",
+      "important": false,
+      "group": null,
+      "model_coef": 0.023612
+    },
+    {
+      "feature": "lymphocytes_percent",
+      "important": false,
+      "group": null,
+      "model_coef": 0.043786
+    },
+    {
+      "feature": "monocytes_percent",
+      "important": false,
+      "group": null,
+      "model_coef": 0.025112
+    },
+    {
+      "feature": "eosinophils_percent",
+      "important": false,
+      "group": null,
+      "model_coef": 0.018944
+    },
+    {
+      "feature": "basophils_percent",
+      "important": false,
+      "group": null,
+      "model_coef": 0.042466
+    },
+    {
+      "feature": "platelet_count_lakhs_cumm",
+      "important": true,
+      "group": "Hemogram",
+      "model_coef": 0.013419
+    },
+    {
+      "feature": "mpv_fl",
+      "important": false,
+      "group": null,
+      "model_coef": 0.019711
+    },
+    {
+      "feature": "pdw_fl",
+      "important": false,
+      "group": null,
+      "model_coef": 0.00102
+    },
+    {
+      "feature": "pct_percent",
+      "important": false,
+      "group": null,
+      "model_coef": 0.027501
+    },
+    {
+      "feature": "plcr_percent",
+      "important": false,
+      "group": null,
+      "model_coef": 0.005745
+    },
+    {
+      "feature": "nrbc_per_100_wbc",
+      "important": false,
+      "group": null,
+      "model_coef": 0.003765
+    },
+    {
+      "feature": "nrbc_percent",
+      "important": false,
+      "group": null,
+      "model_coef": 0.0
+    },
+    {
+      "feature": "ig_percent",
+      "important": false,
+      "group": null,
+      "model_coef": 0.008265
+    },
+    {
+      "feature": "ig_abs_cells_cumm",
+      "important": false,
+      "group": null,
+      "model_coef": 0.047402
+    },
+    {
+      "feature": "neutrophils_abs_cells_cumm",
+      "important": false,
+      "group": null,
+      "model_coef": 0.106036
+    },
+    {
+      "feature": "lymphocytes_abs_cells_cumm",
+      "important": false,
+      "group": null,
+      "model_coef": 0.118303
+    },
+    {
+      "feature": "monocytes_abs_cells_cumm",
+      "important": false,
+      "group": null,
+      "model_coef": 0.037629
+    },
+    {
+      "feature": "eosinophils_abs_cells_cumm",
+      "important": false,
+      "group": null,
+      "model_coef": 0.043942
+    },
+    {
+      "feature": "basophils_abs_cells_cumm",
+      "important": false,
+      "group": null,
+      "model_coef": 0.027726
+    },
+    {
+      "feature": "total_t3_ng_dl",
+      "important": true,
+      "group": "Thyroid Profile",
+      "model_coef": 0.014332
+    },
+    {
+      "feature": "total_t4_ug_dl",
+      "important": true,
+      "group": "Thyroid Profile",
+      "model_coef": 0.012175
+    },
+    {
+      "feature": "tsh_uiu_ml",
+      "important": true,
+      "group": "Thyroid Profile",
+      "model_coef": 0.005169
+    },
+    {
+      "feature": "vitamin_b12_pg_ml",
+      "important": true,
+      "group": "Vitamins",
+      "model_coef": 0.011279
+    },
+    {
+      "feature": "esr_mm_hr",
+      "important": false,
+      "group": null,
+      "model_coef": 0.131063
+    },
+    {
+      "feature": "cho_hdl_ratio",
+      "important": false,
+      "group": null,
+      "model_coef": 0.010106
+    },
+    {
+      "feature": "ldl_hdl_ratio",
+      "important": false,
+      "group": null,
+      "model_coef": 0.002185
+    },
+    {
+      "feature": "tgl_hdl_ratio",
+      "important": false,
+      "group": null,
+      "model_coef": 0.049048
+    },
+    {
+      "feature": "bilirubin_indirect_mg_dl",
+      "important": false,
+      "group": null,
+      "model_coef": 0.022669
+    },
+    {
+      "feature": "ag_ratio",
+      "important": false,
+      "group": null,
+      "model_coef": 0.026549
+    },
+    {
+      "feature": "ast_alt_ratio",
+      "important": false,
+      "group": null,
+      "model_coef": 0.017172
+    },
+    {
+      "feature": "ra_factor_iu_ml",
+      "important": false,
+      "group": null,
+      "model_coef": 0.007509
+    },
+    {
+      "feature": "resting_hr_bpm",
+      "important": false,
+      "group": null,
+      "model_coef": 0.006049
+    },
+    {
+      "feature": "qtcb_ms",
+      "important": false,
+      "group": null,
+      "model_coef": 0.009902
+    },
+    {
+      "feature": "vo2_max_ml_kg_min",
+      "important": false,
+      "group": null,
+      "model_coef": 0.021493
+    },
+    {
+      "feature": "max_mets",
+      "important": false,
+      "group": null,
+      "model_coef": 0.013289
+    },
+    {
+      "feature": "duke_treadmill_score",
+      "important": false,
+      "group": null,
+      "model_coef": 0.013293
+    },
+    {
+      "feature": "urine_ph",
+      "important": false,
+      "group": null,
+      "model_coef": 0.013198
+    },
+    {
+      "feature": "urine_specific_gravity",
+      "important": false,
+      "group": null,
+      "model_coef": 0.029269
+    },
+    {
+      "feature": "urine_pus_cells_hpf",
+      "important": false,
+      "group": null,
+      "model_coef": 0.009299
+    },
+    {
+      "feature": "urine_rbc_hpf",
+      "important": false,
+      "group": null,
+      "model_coef": 0.010397
+    },
+    {
+      "feature": "hba1c_percent",
+      "important": true,
+      "group": "Glucose",
+      "model_coef": 0.248384
+    },
+    {
+      "feature": "estimated_avg_glucose_mg_dl",
+      "important": false,
+      "group": null,
+      "model_coef": 0.279723
+    },
+    {
+      "feature": "uric_acid_mg_dl",
+      "important": true,
+      "group": "Kidney Profile",
+      "model_coef": 0.19784
+    },
+    {
+      "feature": "vitamin_d_ng_ml",
+      "important": true,
+      "group": "Vitamins",
+      "model_coef": 0.037867
+    },
+    {
+      "feature": "ferritin_ng_ml",
+      "important": false,
+      "group": null,
+      "model_coef": 0.022486
+    },
+    {
+      "feature": "iron_ug_dl",
+      "important": false,
+      "group": null,
+      "model_coef": 0.009536
+    },
+    {
+      "feature": "tibc_ug_dl",
+      "important": false,
+      "group": null,
+      "model_coef": 0.013233
+    },
+    {
+      "feature": "uibc_ug_dl",
+      "important": false,
+      "group": null,
+      "model_coef": 0.015369
+    },
+    {
+      "feature": "crp_mg_l",
+      "important": true,
+      "group": "Cardiac Risk Marker",
+      "model_coef": 0.152177
+    },
+    {
+      "feature": "psa_ng_ml",
+      "important": true,
+      "group": "Cancer Screening",
+      "model_coef": 0.001309
+    },
+    {
+      "feature": "urine_colour",
+      "important": false,
+      "group": null,
+      "model_coef": 0.012555
+    },
+    {
+      "feature": "urine_appearance",
+      "important": false,
+      "group": null,
+      "model_coef": 0.043545
+    },
+    {
+      "feature": "urine_volume_ml",
+      "important": false,
+      "group": null,
+      "model_coef": 0.027707
+    },
+    {
+      "feature": "urine_protein",
+      "important": false,
+      "group": null,
+      "model_coef": 0.081882
+    },
+    {
+      "feature": "urine_glucose",
+      "important": false,
+      "group": null,
+      "model_coef": 0.024931
+    },
+    {
+      "feature": "urine_ketones",
+      "important": false,
+      "group": null,
+      "model_coef": 0.000263
+    },
+    {
+      "feature": "urine_bilirubin",
+      "important": false,
+      "group": null,
+      "model_coef": 0.106445
+    },
+    {
+      "feature": "urine_urobilinogen",
+      "important": false,
+      "group": null,
+      "model_coef": 0.039422
+    },
+    {
+      "feature": "urine_nitrite",
+      "important": false,
+      "group": null,
+      "model_coef": 0.22903
+    },
+    {
+      "feature": "urine_leucocyte_esterase",
+      "important": false,
+      "group": null,
+      "model_coef": 0.001622
+    },
+    {
+      "feature": "urine_epithelial_cells_hpf",
+      "important": false,
+      "group": null,
+      "model_coef": 0.006812
+    },
+    {
+      "feature": "urine_casts",
+      "important": false,
+      "group": null,
+      "model_coef": 0.030841
+    },
+    {
+      "feature": "urine_crystals",
+      "important": false,
+      "group": null,
+      "model_coef": null
+    },
+    {
+      "feature": "urine_bacteria",
+      "important": false,
+      "group": null,
+      "model_coef": 0.01363
+    },
+    {
+      "feature": "urine_yeast",
+      "important": false,
+      "group": null,
+      "model_coef": 0.096185
+    },
+    {
+      "feature": "urine_mucus",
+      "important": false,
+      "group": null,
+      "model_coef": 0.025957
+    },
+    {
+      "feature": "urine_parasite",
+      "important": false,
+      "group": null,
+      "model_coef": 0.022809
+    },
+    {
+      "feature": "urine_amorphous_deposits",
+      "important": false,
+      "group": null,
+      "model_coef": 0.009637
+    },
+    {
+      "feature": "urine_bile_pigment",
+      "important": false,
+      "group": null,
+      "model_coef": 0.028195
+    },
+    {
+      "feature": "urine_bile_salt",
+      "important": false,
+      "group": null,
+      "model_coef": 0.003441
+    }
+  ],
+  "important_groups": {
+    "Glucose": [
+      "fbs_mg_dl",
+      "hba1c_percent"
+    ],
+    "Lipid Profile": [
+      "total_cholesterol_mg_dl",
+      "hdl_mg_dl",
+      "ldl_mg_dl",
+      "triglycerides_mg_dl"
+    ],
+    "Kidney Profile": [
+      "bun_mg_dl",
+      "creatinine_mg_dl",
+      "calcium_mg_dl",
+      "uric_acid_mg_dl"
+    ],
+    "Electrolytes": [
+      "sodium_meq_l",
+      "potassium_meq_l",
+      "chloride_meq_l"
+    ],
+    "Liver Function": [
+      "bilirubin_total_mg_dl",
+      "ast_sgot_u_l",
+      "alt_sgpt_u_l",
+      "alp_u_l",
+      "ggt_u_l",
+      "total_protein_g_dl",
+      "albumin_g_dl"
+    ],
+    "Hemogram": [
+      "rbc_million_cmm",
+      "haemoglobin_g_dl",
+      "total_wbc_cells_cumm",
+      "platelet_count_lakhs_cumm"
+    ],
+    "Thyroid Profile": [
+      "total_t3_ng_dl",
+      "total_t4_ug_dl",
+      "tsh_uiu_ml"
+    ],
+    "Vitamins": [
+      "vitamin_b12_pg_ml",
+      "vitamin_d_ng_ml"
+    ],
+    "Cardiac Risk Marker": [
+      "crp_mg_l"
+    ],
+    "Cancer Screening": [
+      "psa_ng_ml"
+    ]
+  },
+  "mandatory_minimum": [
+    "age",
+    "sex",
+    "hba1c_percent",
+    "fbs_mg_dl",
+    "creatinine_mg_dl",
+    "total_cholesterol_mg_dl"
+  ],
+  "demographics_and_vitals": {
+    "mandatory": [
+      "age",
+      "sex"
+    ],
+    "derived": {
+      "bmi": [
+        "height_cm",
+        "weight_kg"
+      ]
+    },
+    "important_but_often_missing": [
+      "systolic_bp_mmhg",
+      "diastolic_bp_mmhg"
+    ]
+  },
+  "clinically_important_but_model_near_zero": [
+    {
+      "feature": "bun_mg_dl",
+      "group": "Kidney Profile",
+      "model_coef": 0.001079
+    },
+    {
+      "feature": "psa_ng_ml",
+      "group": "Cancer Screening",
+      "model_coef": 0.001309
+    },
+    {
+      "feature": "rbc_million_cmm",
+      "group": "Hemogram",
+      "model_coef": 0.002564
+    },
+    {
+      "feature": "sodium_meq_l",
+      "group": "Electrolytes",
+      "model_coef": 0.004913
+    },
+    {
+      "feature": "tsh_uiu_ml",
+      "group": "Thyroid Profile",
+      "model_coef": 0.005169
+    },
+    {
+      "feature": "ggt_u_l",
+      "group": "Liver Function",
+      "model_coef": 0.006055
+    },
+    {
+      "feature": "bilirubin_total_mg_dl",
+      "group": "Liver Function",
+      "model_coef": 0.006436
+    },
+    {
+      "feature": "ast_sgot_u_l",
+      "group": "Liver Function",
+      "model_coef": 0.006789
+    },
+    {
+      "feature": "alp_u_l",
+      "group": "Liver Function",
+      "model_coef": 0.00943
+    },
+    {
+      "feature": "calcium_mg_dl",
+      "group": "Kidney Profile",
+      "model_coef": 0.010598
+    },
+    {
+      "feature": "vitamin_b12_pg_ml",
+      "group": "Vitamins",
+      "model_coef": 0.011279
+    },
+    {
+      "feature": "total_t4_ug_dl",
+      "group": "Thyroid Profile",
+      "model_coef": 0.012175
+    },
+    {
+      "feature": "platelet_count_lakhs_cumm",
+      "group": "Hemogram",
+      "model_coef": 0.013419
+    },
+    {
+      "feature": "chloride_meq_l",
+      "group": "Electrolytes",
+      "model_coef": 0.014247
+    },
+    {
+      "feature": "total_t3_ng_dl",
+      "group": "Thyroid Profile",
+      "model_coef": 0.014332
+    },
+    {
+      "feature": "total_wbc_cells_cumm",
+      "group": "Hemogram",
+      "model_coef": 0.015064
+    },
+    {
+      "feature": "alt_sgpt_u_l",
+      "group": "Liver Function",
+      "model_coef": 0.016166
+    },
+    {
+      "feature": "ldl_mg_dl",
+      "group": "Lipid Profile",
+      "model_coef": 0.016586
+    },
+    {
+      "feature": "total_protein_g_dl",
+      "group": "Liver Function",
+      "model_coef": 0.030217
+    },
+    {
+      "feature": "potassium_meq_l",
+      "group": "Electrolytes",
+      "model_coef": 0.030703
+    },
+    {
+      "feature": "fbs_mg_dl",
+      "group": "Glucose",
+      "model_coef": 0.031128
+    },
+    {
+      "feature": "vitamin_d_ng_ml",
+      "group": "Vitamins",
+      "model_coef": 0.037867
+    }
+  ],
+  "special_handling": {
+    "thyroid_free_vs_total": "Clinical panel names FT3/FT4 (free); model has total_t3_ng_dl/total_t4_ug_dl. Mapped to the same slot. Free vs total differ clinically \u2014 flag for correction when real data supplies free values.",
+    "hs_crp": "Clinical 'hs-CRP' mapped directly to model column crp_mg_l.",
+    "psa_male_only": "PSA is male-only structural missingness. For females it is not-applicable (Phase-1 psa_applicable flag), NOT missing. Do not count PSA absence against a female member's confidence.",
+    "chronic_disease": "Raw chronic_disease explodes into has_* flags (the model's strongest features) but is absent from real AHC exports; model_coef=null here."
+  }
+}
