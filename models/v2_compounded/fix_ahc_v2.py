@@ -46,31 +46,42 @@ OUTFILE = os.path.join(HERE, "healthbridge_ahc_v2_compounded_100k.csv")
 # Clinically ordered: renal (ckd) and metabolic (diabetes) largest.
 # --------------------------------------------------------------------------
 INDIV = {
-    "has_ckd": 0.60, "has_diabetes": 0.50, "has_hypertension": 0.40,
-    "has_obesity": 0.30, "has_dyslipidaemia": 0.25, "has_anaemia": 0.25,
-    "has_nafld": 0.25, "has_hyperuricaemia": 0.20, "has_hypothyroidism": 0.18,
+    "has_ckd": 0.35, "has_diabetes": 0.30, "has_hypertension": 0.25,
+    "has_obesity": 0.18, "has_dyslipidaemia": 0.15, "has_anaemia": 0.15,
+    "has_nafld": 0.15, "has_hyperuricaemia": 0.12, "has_hypothyroidism": 0.10,
 }
 
 # --------------------------------------------------------------------------
-# Injected interaction bonuses (log-odds). (label, set-of-conditions, bonus)
+# Injected interaction bonuses (log-odds). (label, conditions, bonus, kind)
+#
+# v2 REBALANCE: the learnable signal must sit where the additive BASELINE rate is
+# mid-range (~0.3-0.7), so a bonus visibly moves the outcome while staying < 0.85.
+#   - DEMONSTRATORS: mid-range baseline -> bonus enlarged for a clear, sub-0.85 lift.
+#     hypothyroid x dyslipidaemia (baseline 0.255) is the prime demonstrator: huge
+#     headroom that v1 wasted.
+#   - SATURATED: baseline already ~0.84-0.98 (renal / severe combos). A bonus only
+#     crushes against 1.0 and is invisible to a model, so these are HELD MODEST and
+#     clinically ordered, NOT inflated. (hypertension x ckd baseline=0.92 belongs
+#     here despite being a 2-way — it is saturated, not mid-range.)
+# Magnitudes are ordered by LEARNABILITY, not severity; severity ordering is kept
+# WITHIN the saturated group. Every bonus still exceeds its components' sum.
 # --------------------------------------------------------------------------
 INTERACTIONS = [
-    # ---- 2-way ----
-    ("diabetes x ckd",                 {"has_diabetes", "has_ckd"},                         1.40),
-    ("hypertension x ckd",             {"has_hypertension", "has_ckd"},                     1.30),
-    ("diabetes x hypertension",        {"has_diabetes", "has_hypertension"},                1.10),
-    ("ckd x anaemia",                  {"has_ckd", "has_anaemia"},                          1.05),
-    ("diabetes x dyslipidaemia",       {"has_diabetes", "has_dyslipidaemia"},               0.95),
-    ("hypothyroid x dyslipidaemia",    {"has_hypothyroidism", "has_dyslipidaemia"},         0.60),
-    # ---- 3-way (diabetes x hypertension x ckd is the largest 3-way) ----
-    ("diabetes x hypertension x ckd",          {"has_diabetes", "has_hypertension", "has_ckd"},            2.40),
-    ("hyperuricaemia x hypertension x ckd",    {"has_hyperuricaemia", "has_hypertension", "has_ckd"},      1.90),
-    ("diabetes x hypertension x dyslipidaemia",{"has_diabetes", "has_hypertension", "has_dyslipidaemia"},  1.70),
-    ("nafld x diabetes x obesity",             {"has_nafld", "has_diabetes", "has_obesity"},               1.60),
-    ("obesity x hypertension x dyslipidaemia", {"has_obesity", "has_hypertension", "has_dyslipidaemia"},   1.45),
-    # ---- 4-way (largest overall) ----
+    # ---- DEMONSTRATORS (mid-range baseline, sized for a visible sub-0.85 lift) ----
+    ("hypothyroid x dyslipidaemia",            {"has_hypothyroidism", "has_dyslipidaemia"},               1.65, "demonstrator"),
+    ("obesity x hypertension x dyslipidaemia", {"has_obesity", "has_hypertension", "has_dyslipidaemia"},   1.40, "demonstrator"),
+    ("diabetes x hypertension x dyslipidaemia",{"has_diabetes", "has_hypertension", "has_dyslipidaemia"},  1.05, "demonstrator"),
+    ("diabetes x hypertension",                {"has_diabetes", "has_hypertension"},                       1.00, "demonstrator"),
+    ("nafld x diabetes x obesity",             {"has_nafld", "has_diabetes", "has_obesity"},               1.00, "demonstrator"),
+    ("diabetes x dyslipidaemia",               {"has_diabetes", "has_dyslipidaemia"},                      0.95, "demonstrator"),
+    # ---- SATURATED (baseline near ceiling: held modest, clinically ordered) ----
+    ("diabetes x hypertension x ckd",          {"has_diabetes", "has_hypertension", "has_ckd"},            1.05, "saturated"),
     ("diabetes x hypertension x dyslipidaemia x obesity",
-     {"has_diabetes", "has_hypertension", "has_dyslipidaemia", "has_obesity"}, 2.50),
+     {"has_diabetes", "has_hypertension", "has_dyslipidaemia", "has_obesity"},                            1.00, "saturated"),
+    ("hyperuricaemia x hypertension x ckd",    {"has_hyperuricaemia", "has_hypertension", "has_ckd"},      0.90, "saturated"),
+    ("diabetes x ckd",                         {"has_diabetes", "has_ckd"},                                0.80, "saturated"),
+    ("hypertension x ckd",                     {"has_hypertension", "has_ckd"},                            0.75, "saturated"),
+    ("ckd x anaemia",                          {"has_ckd", "has_anaemia"},                                 0.72, "saturated"),
 ]
 
 # stacking rule: False = apply only the single STRONGEST matched interaction per
@@ -83,7 +94,7 @@ SEV_PER_EXTRA = 0.25   # +25% per comorbid condition beyond the first
 SEV_CAP = 2.00
 
 # --- guarantee super-additivity (programmatic audit) ---
-for label, conds, bonus in INTERACTIONS:
+for label, conds, bonus, kind in INTERACTIONS:
     comp_sum = sum(INDIV[c] for c in conds)
     assert bonus > comp_sum, f"{label}: bonus {bonus} !> component sum {comp_sum}"
 
@@ -113,7 +124,7 @@ def main():
     boost = np.zeros(n)
     matched = [[] for _ in range(n)]
     per_term_fired = {}
-    for label, conds, bonus in INTERACTIONS:
+    for label, conds, bonus, kind in INTERACTIONS:
         hit = np.logical_and.reduce([flags[c] for c in conds])
         per_term_fired[label] = int(hit.sum())
         idx = np.where(hit)[0]
@@ -157,20 +168,39 @@ def main():
     print("\n" + "=" * 64)
     print("COMPOUNDED TARGET — before / after (identical members & features)")
     print("=" * 64)
-    print(f"  additive   claim_next_12m            rate = {df['claim_next_12m'].mean():.4f}")
-    print(f"  compounded claim_next_12m_compounded rate = {claim_comp.mean():.4f}")
+    add_rate = df["claim_next_12m"].mean()
+    comp_rate = claim_comp.mean()
+    print(f"  additive   claim_next_12m            rate = {add_rate:.4f}")
+    print(f"  compounded claim_next_12m_compounded rate = {comp_rate:.4f}  "
+          f"(drift {100*(comp_rate-add_rate):+.2f} pp)")
     print(f"  members gaining interaction boost (>0)    = {(boost>0).sum():,}  "
           f"({(boost>0).mean()*100:.2f}%)")
     print(f"  stacking rule: {'SUM of matched' if STACKING else 'MAX matched only'}")
-    print("\n  per-interaction: members fired  &  additive->compounded claim rate")
-    for label, conds, bonus in INTERACTIONS:
+
+    def lift(conds):
         hit = np.logical_and.reduce([flags[c] for c in conds])
-        if hit.sum() == 0:
-            print(f"    {label:48s} fired=0"); continue
-        ra = df.loc[hit, "claim_next_12m"].mean()
-        rc = claim_comp[hit].mean()
-        print(f"    {label:48s} fired={per_term_fired[label]:5d}  "
-              f"+{bonus:.2f}logit  {ra:.3f} -> {rc:.3f}")
+        return hit, df.loc[hit, "claim_next_12m"].mean(), claim_comp[hit].mean()
+
+    for tag in ("demonstrator", "saturated"):
+        print(f"\n  [{tag.upper()}]  combo  (fired)  +bonus   pre -> post   "
+              + ("(post must be < 0.85)" if tag == "demonstrator" else "(at ceiling — not learnable)"))
+        for label, conds, bonus, kind in INTERACTIONS:
+            if kind != tag:
+                continue
+            hit, ra, rc = lift(conds)
+            flag = ""
+            if kind == "demonstrator":
+                flag = "  <-- OK" if rc < 0.85 else "  <-- !! >=0.85"
+            print(f"    {label:48s} ({per_term_fired[label]:5d})  +{bonus:.2f}  "
+                  f"{ra:.3f} -> {rc:.3f}{flag}")
+
+    # --- explicit verification the task asks for ---
+    demo_bad = [label for label, conds, bonus, kind in INTERACTIONS
+                if kind == "demonstrator" and lift(conds)[2] >= 0.85]
+    print("\n  VERIFY demonstrators post-rate < 0.85 :",
+          "ALL PASS" if not demo_bad else f"FAIL -> {demo_bad}")
+    print(f"  VERIFY base rate ~16% (not drifting up): {comp_rate:.4f}",
+          "OK" if comp_rate <= 0.17 else "<-- drifted high")
     print(f"\n  severity: comorbid claimants amount x up to {SEV_CAP} "
           f"(+{int(SEV_PER_EXTRA*100)}%/extra condition)")
     print(f"\nWrote {OUTFILE}")

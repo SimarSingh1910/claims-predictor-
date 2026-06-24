@@ -28,6 +28,16 @@ import features  # noqa: F401  (registers ClinicalFeatureEngineer for unpickling
 TARGETS = ["claim_next_12m", "claim_count_12m", "claim_amount_inr"]
 IDS = ["CUG", "employee_id", "name", "ahc_date"]
 
+# Artifact paths — default to the v1 (root) pipeline. A caller (e.g. the v2 scorer)
+# can override these module globals BEFORE the first score_member() call to point at
+# a different model version. Defaults unchanged => v1 behaviour is identical.
+PREPROCESSOR_PATH  = os.path.join(ROOT, "preprocessor.joblib")
+MODEL_PATH         = os.path.join(ROOT, "calibrated_model.joblib")
+FREQ_MODEL_PATH    = os.path.join(ROOT, "frequency_model.joblib")
+CORE_PANEL_PATH    = os.path.join(ROOT, "core_panel.json")
+FEATURE_NAMES_PATH = os.path.join(ROOT, "feature_names.json")
+TRAIN_CSV_PATH     = os.path.join(ROOT, "splits", "train.csv")
+
 # Map each engineered (coef-bearing) feature -> the RAW input column(s) it needs.
 # Kept in sync with features.py transform(). Anything not listed here is a raw
 # column that passes through under its own name (source = {itself}).
@@ -47,14 +57,14 @@ _R = {}
 def _resources():
     if _R:
         return _R
-    panel = json.load(open(os.path.join(ROOT, "core_panel.json")))
+    panel = json.load(open(CORE_PANEL_PATH))
     important = {e["feature"]: e["group"] for e in panel["features"] if e["important"]}
     model_features = [e["feature"] for e in panel["features"]]   # the 115, in order
 
-    pre = joblib.load(os.path.join(ROOT, "preprocessor.joblib"))
-    model = joblib.load(os.path.join(ROOT, "calibrated_model.joblib"))
-    feat_names = json.load(open(os.path.join(ROOT, "feature_names.json")))
-    base = joblib.load(os.path.join(ROOT, "frequency_model.joblib"))
+    pre = joblib.load(PREPROCESSOR_PATH)
+    model = joblib.load(MODEL_PATH)
+    feat_names = json.load(open(FEATURE_NAMES_PATH))
+    base = joblib.load(FREQ_MODEL_PATH)
     abscoef = {f: abs(float(c)) for f, c in zip(feat_names, np.ravel(base.coef_))}
 
     # engineered feature -> source raw columns
@@ -74,7 +84,7 @@ def _resources():
     total_abscoef = sum(abscoef.values())
 
     # train medians (numeric) and modes (object) for imputation
-    train = pd.read_csv(os.path.join(ROOT, "splits", "train.csv"))
+    train = pd.read_csv(TRAIN_CSV_PATH)
     train = train.drop(columns=[c for c in TARGETS if c in train.columns])
     num_cols = train.select_dtypes(include=["number"]).columns.tolist()
     obj_cols = train.select_dtypes(exclude=["number"]).columns.tolist()

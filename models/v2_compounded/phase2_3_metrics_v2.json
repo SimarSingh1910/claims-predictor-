@@ -1,0 +1,64 @@
+{
+  "winner": "LogReg",
+  "scale_pos_weight": 4.924170616113744,
+  "val_metrics": {
+    "LogReg": {
+      "pr_auc": 0.6212124371325022,
+      "auc_roc": 0.8477217172288433,
+      "brier": 0.1516507636718501,
+      "logloss": 0.4692046402945547
+    },
+    "LightGBM": {
+      "pr_auc": 0.6174615547680384,
+      "auc_roc": 0.8475642281313304,
+      "brier": 0.14921222548829585,
+      "logloss": 0.4603527315809062
+    },
+    "LogReg_interactions": {
+      "pr_auc": 0.6245072417628682,
+      "auc_roc": 0.849424945216216,
+      "brier": 0.1503543623158651,
+      "logloss": 0.4672495945383344
+    }
+  },
+  "lgbm_minus_logreg_pr_auc": -0.003750882364463748,
+  "best_lgbm_params": {
+    "colsample_bytree": 0.7159005811655073,
+    "learning_rate": 0.015474297664393481,
+    "max_depth": 4,
+    "min_child_samples": 189,
+    "n_estimators": 856,
+    "num_leaves": 76,
+    "reg_alpha": 0.22026297256779717,
+    "reg_lambda": 1.6730409962757933,
+    "subsample": 0.9214688307596458
+  },
+  "interaction_coefs": {
+    "ix_hypothyroid_dys": 0.8662417462526953,
+    "ix_obesity_htn_dys": 0.7738745857634818,
+    "ix_diab_htn_dys": -0.41981139104664733,
+    "ix_diab_htn": 0.46424177557879537,
+    "ix_nafld_diab_obesity": 0.27303949178189474,
+    "ix_diab_dys": 0.3137426919769694,
+    "ix_diab_htn_ckd": -0.021931795324275933,
+    "ix_diab_htn_dys_obesity": -0.609255394443988,
+    "ix_hyperuric_htn_ckd": 0.09558212399347422,
+    "ix_diab_ckd": 0.39361228254237574,
+    "ix_htn_ckd": 0.14217356199163247,
+    "ix_ckd_anaemia": 0.10064775002703796
+  },
+  "calibration": {
+    "before": {
+      "pr_auc": 0.6111791427226463,
+      "auc_roc": 0.843524531024531,
+      "brier": 0.1532972135944441,
+      "logloss": 0.47299526476992587
+    },
+    "after": {
+      "pr_auc": 0.5936562105218925,
+      "auc_roc": 0.8431046553077433,
+      "brier": 0.09826082862328338,
+      "logloss": 0.3240009603418264
+    }
+  }
+}
