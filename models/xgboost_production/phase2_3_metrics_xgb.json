@@ -1,0 +1,59 @@
+{
+  "model": "XGBoost (3rd frequency option)",
+  "scale_pos_weight": 5.236357966947303,
+  "best_params": {
+    "colsample_bytree": 0.8,
+    "learning_rate": 0.03,
+    "max_depth": 3,
+    "n_estimators": 600,
+    "subsample": 0.8
+  },
+  "best_iteration": 597,
+  "best_cv_pr_auc": 0.6012956527475628,
+  "xgb_val_uncalibrated": {
+    "auc_roc": 0.8373732997239205,
+    "pr_auc": 0.5778082869391685,
+    "brier": 0.15404817585556643,
+    "logloss": 0.47335686604079874
+  },
+  "xgb_calibration_val_eval": {
+    "before": {
+      "slope": 1.0032513783924986,
+      "intercept": -1.5780198638023453,
+      "brier": 0.15437232723181252,
+      "logloss": 0.473594756865963
+    },
+    "after": {
+      "slope": 0.9352973467760639,
+      "intercept": -0.08408854865793519,
+      "brier": 0.09791523153313715,
+      "logloss": 0.3411934742543708
+    }
+  },
+  "logreg_val_uncalibrated": {
+    "auc_roc": 0.8409643675495404,
+    "pr_auc": 0.5861005027940087,
+    "brier": 0.15575238552826223,
+    "logloss": 0.4799119651025259
+  },
+  "logreg_calibration_val_eval_after": {
+    "slope": 0.9655064496244049,
+    "intercept": -0.045549838904620776,
+    "brier": 0.0970370151463248,
+    "logloss": 0.32258292564581215
+  },
+  "lightgbm_val_uncalibrated": {
+    "auc_roc": 0.8365541301703898,
+    "pr_auc": 0.5759460207469144,
+    "brier": 0.15448337162098744,
+    "logloss": 0.47478690552432035
+  },
+  "lightgbm_calibration_val_eval_after": {
+    "slope": 0.9502306465985106,
+    "intercept": -0.06564585513146204,
+    "brier": 0.09813715901876523,
+    "logloss": 0.3381955750233647
+  },
+  "pr_auc_winner_synthetic": "LogReg",
+  "pr_auc_xgb_minus_logreg": -0.00829221585484019
+}
