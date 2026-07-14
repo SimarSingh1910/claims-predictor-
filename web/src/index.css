@@ -1,0 +1,43 @@
+/* Plain CSS only. Tailwind utilities are provided at runtime by the Play CDN
+   (loaded in index.html), so this file must NOT use @tailwind or @apply — those
+   require the PostCSS build we deliberately removed. Base resets + the shimmer
+   keyframes live here as ordinary CSS so they work with zero build step. */
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #0b0f19; /* surface.base */
+  color: #e2e8f0; /* slate-200 */
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* "Awaiting model" skeleton shimmer, used by untrained slot cards. */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0.06) 25%,
+    rgba(148, 163, 184, 0.16) 37%,
+    rgba(148, 163, 184, 0.06) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}

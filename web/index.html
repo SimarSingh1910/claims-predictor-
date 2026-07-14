@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HealthBridge · Claim Engine</title>
+
+    <!-- Tailwind via the Play CDN (runtime JIT). Used instead of the npm build
+         because the network proxy blocks npm package installs. Config below
+         registers the custom color tokens the components reference. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              surface: {
+                base: "#0b0f19",
+                panel: "#111726",
+                raised: "#161d2e",
+                border: "#232c40",
+              },
+              brand: { DEFAULT: "#3b82f6", soft: "#1e3a5f" },
+              synthetic: "#f59e0b",
+              real: "#10b981",
+            },
+            fontFamily: {
+              sans: ["Inter", "system-ui", "sans-serif"],
+              mono: ["ui-monospace", "SFMono-Regular", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
