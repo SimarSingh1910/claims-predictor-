@@ -15,6 +15,7 @@ import type {
 } from "../types";
 import { MetricCard } from "./MetricCard";
 import { Meter } from "./Meter";
+import { MODEL_LABEL } from "../lib/models";
 
 const SLOT_ORDER: SlotKey[] = ["p12", "p24", "p36", "expected_cost"];
 const DEMOGRAPHICS = ["age", "sex", "height_cm", "weight_kg"];
@@ -194,6 +195,9 @@ export function ManualScorer({
                 <Meter
                   label="Model confidence"
                   pct={result.model_confidence_pct}
+                  hint={`importance-weighted coverage of present features (${
+                    MODEL_LABEL[result.model_used as P12Model] ?? result.model_used
+                  })`}
                 />
               </div>
             </>

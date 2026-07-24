@@ -10,7 +10,10 @@ this layer:
   3. IMPUTES everything else from train medians/modes (low-weight -> score barely moves),
   4. reports TWO confidence numbers:
        panel_completeness_pct : % of the clinical IMPORTANT_PANEL actually present,
-       model_confidence_pct   : coef-weighted share of present features (model trust).
+       model_confidence_pct   : importance-weighted share of present features. The
+           weighting basis is the ACTIVE scoring model's OWN importances — passed in
+           by the caller (see score_member's `weights` arg). Standalone, this module
+           defaults to the LogReg |coef| basis loaded from FREQ_MODEL_PATH.
 
 A value is "present" only if it was PROVIDED or DERIVED from real inputs — an
 imputed median does NOT count as present.
@@ -51,6 +54,57 @@ _ABNORMAL_FLAG_SOURCES = {
 }
 
 # --------------------------------------------------------------------------
+# Model-importance extraction (READ-ONLY — never refits or mutates a model)
+# --------------------------------------------------------------------------
+def _base_estimator(clf):
+    """Reach the fitted estimator behind a CalibratedClassifierCV(cv='prefit').
+    Importances/coefs live on the wrapped estimator, not the calibrator. Handles
+    both sklearn spellings (`estimator` new, `base_estimator` old)."""
+    if hasattr(clf, "calibrated_classifiers_"):
+        cc = clf.calibrated_classifiers_[0]
+        return getattr(cc, "estimator", None) or getattr(cc, "base_estimator", None)
+    return clf
+
+
+def importance_vector(clf, n_features):
+    """Return (weights: np.ndarray[n_features], reason: str|None) — the per-feature
+    weighting basis for model_confidence, read off `clf`'s OWN fitted parameters:
+    tree `feature_importances_` (gain) if present, else linear `abs(coef_)`.
+
+    READ-ONLY. Positional over the preprocessor's output features, so length MUST
+    equal n_features — a mismatch would misattribute every weight, so we FAIL LOUD
+    rather than guess. Returns (None, reason) only when the model exposes no usable
+    importances at all; the caller then marks that model's confidence unavailable
+    (it must NOT silently fall back to another model's weights).
+
+    No normalisation: the metric is a ratio (present-weight / total-weight), so any
+    positive scaling cancels. Zero-importance features (a tree never split on) are
+    kept as 0.0 — they correctly cost no confidence when missing."""
+    est = _base_estimator(clf)
+    if est is None:
+        return None, "no fitted estimator behind the calibration wrapper"
+    imp = getattr(est, "feature_importances_", None)
+    if imp is not None:
+        w = np.asarray(imp, dtype=float).ravel()
+        basis = "feature_importances_ (gain)"
+    else:
+        coef = getattr(est, "coef_", None)
+        if coef is None:
+            return None, (f"{type(est).__name__} exposes neither "
+                          f"feature_importances_ nor coef_")
+        w = np.abs(np.asarray(coef, dtype=float)).ravel()
+        basis = "abs(coef_)"
+    if w.shape[0] != n_features:
+        raise ValueError(
+            f"importance length {w.shape[0]} != feature count {n_features} for "
+            f"{type(est).__name__} ({basis}) — refusing to misalign the confidence "
+            f"basis (would misattribute every weight)")
+    if not np.isfinite(w).all() or w.sum() <= 0:
+        return None, f"{type(est).__name__} {basis} are all-zero or non-finite"
+    return w, None
+
+
+# --------------------------------------------------------------------------
 # Resource loading (cached once per process)
 # --------------------------------------------------------------------------
 _R = {}
@@ -65,9 +119,13 @@ def _resources():
     model = joblib.load(MODEL_PATH)
     feat_names = json.load(open(FEATURE_NAMES_PATH))
     base = joblib.load(FREQ_MODEL_PATH)
-    abscoef = {f: abs(float(c)) for f, c in zip(feat_names, np.ravel(base.coef_))}
+    # Default weighting basis: LogReg |coef|. A caller (e.g. model_service) passes
+    # the ACTIVE model's own importances into score_member and overrides this.
+    default_weights = {f: abs(float(c)) for f, c in zip(feat_names, np.ravel(base.coef_))}
 
-    # engineered feature -> source raw columns
+    # Each engineered/preprocessor-output feature -> the RAW input column(s) it needs.
+    # This mapping is MODEL-INDEPENDENT (about data flow, not weights); the weight
+    # per feature is looked up separately so the basis can swap per active model.
     eng_sources = []
     for f in feat_names:
         if f.startswith("has_"):
@@ -80,8 +138,7 @@ def _resources():
             src = {"sex"}
         else:
             src = {f}                       # passthrough / scaled / ordinal / binary
-        eng_sources.append((f, abscoef.get(f, 0.0), src))
-    total_abscoef = sum(abscoef.values())
+        eng_sources.append((f, src))
 
     # train medians (numeric) and modes (object) for imputation
     train = pd.read_csv(TRAIN_CSV_PATH)
@@ -93,7 +150,8 @@ def _resources():
 
     _R.update(dict(panel=panel, important=important, model_features=model_features,
                    mandatory=panel["mandatory_minimum"], pre=pre, model=model,
-                   eng_sources=eng_sources, total_abscoef=total_abscoef,
+                   feat_names=feat_names, eng_sources=eng_sources,
+                   weights=default_weights,
                    num_cols=set(num_cols), obj_cols=set(obj_cols),
                    medians=medians, modes=modes))
     return _R
@@ -174,9 +232,23 @@ def _band(pct):
 # --------------------------------------------------------------------------
 # Main entry point
 # --------------------------------------------------------------------------
-def score_member(raw):
-    """Score a member (dict) or a batch (DataFrame). dict -> dict; DataFrame -> list[dict]."""
+_WEIGHTS_DEFAULT = object()   # sentinel: "arg omitted" (use this module's default basis)
+
+
+def score_member(raw, weights=_WEIGHTS_DEFAULT):
+    """Score a member (dict) or a batch (DataFrame). dict -> dict; DataFrame -> list[dict].
+
+    `weights` selects the model_confidence weighting basis:
+      * omitted            -> the module default (LogReg |coef|); preserves prior behaviour.
+      * dict feature->weight -> the ACTIVE model's own importances (positional basis
+                                aligned to feat_names). This is what model_service passes.
+      * None               -> the active model exposes NO usable importances; model_confidence
+                                is reported None (unavailable) rather than borrowing another
+                                model's weights. panel_completeness_pct is unaffected either way.
+    """
     R = _resources()
+    W = R["weights"] if weights is _WEIGHTS_DEFAULT else weights
+    total_w = sum(W.values()) if W else 0.0
     is_single = isinstance(raw, dict)
     # which columns the caller actually SUPPLIED (column-level). Matters for
     # chronic_disease: a supplied-but-blank value means "no conditions" (a real
@@ -219,14 +291,18 @@ def score_member(raw):
         n_total = len(panel)
         completeness = 100.0 * len(present_imp) / n_total
 
-        # --- model confidence: coef-weighted coverage of present features ---
-        covered = sum(w for _, w, src in R["eng_sources"] if src <= present_raw)
-        model_conf = 100.0 * covered / R["total_abscoef"] if R["total_abscoef"] else 0.0
+        # --- model confidence: importance-weighted coverage of present features,
+        #     weighted by the ACTIVE model's own basis (W). None => unavailable.
+        if W is None or total_w <= 0:
+            model_conf = None
+        else:
+            covered = sum(W.get(f, 0.0) for f, src in R["eng_sources"] if src <= present_raw)
+            model_conf = round(100.0 * covered / total_w, 1)
 
         results.append({
             "claim_probability": float(probs[i]) if scored else None,
             "panel_completeness_pct": round(completeness, 1),
-            "model_confidence_pct": round(model_conf, 1),
+            "model_confidence_pct": model_conf,
             "confidence_band": _band(completeness),
             "scored": scored,
             "reason": "ok" if scored else

@@ -116,6 +116,7 @@ def meta():
         "feature_list": feature_list,
         "p12_models": SERVICE.available_p12_models(),
         "default_p12_model": "xgboost",
+        "p12_confidence": SERVICE.confidence_basis(),   # per-model weighting basis + availability
         "registry": registry_status(SERVICE.registry),
     }
 
@@ -330,17 +331,19 @@ def metrics(model: str = Query("xgboost")):
 
 @app.get("/api/sample")
 def sample():
-    """200 anonymised rows from val.csv as a downloadable CSV. Never touches
-    test.csv. ID and target columns are stripped so the sample is upload-shaped."""
-    val_path = os.path.join(ROOT, "splits", "val.csv")
-    df = pd.read_csv(val_path, nrows=200)
-    df = df.drop(columns=[c for c in ID_COLS + TARGET_COLS if c in df.columns])
+    """200 anonymised rows as a downloadable CSV, with realistic clinical
+    missingness baked in (see make_sample_dataset.py). Whole sub-panels are blank
+    on many rows so the demo exercises the confidence bands and refusal path
+    instead of scoring every member at 100%/HIGH.
 
-    buf = io.StringIO()
-    df.to_csv(buf, index=False)
-    buf.seek(0)
+    Derived from val.csv only (never test.csv); ID and target columns already
+    stripped; blank cells are truly empty (never 0/"NA"/"null"). Served verbatim
+    so the file is reproducible from the committed generator."""
+    sample_path = os.path.join(ROOT, "sample_dataset.csv")
+    with open(sample_path, "rb") as fh:
+        payload = fh.read()
     return StreamingResponse(
-        iter([buf.getvalue()]),
+        iter([payload]),
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=healthbridge_sample_200.csv"},
     )

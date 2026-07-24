@@ -234,6 +234,7 @@ function MembersTable({ result }: { result: ScoreResponse }) {
         member={selected}
         slots={result.slots}
         provenance={result.provenance}
+        modelUsed={result.model_used}
         onClose={() => setSelected(null)}
       />
     </div>

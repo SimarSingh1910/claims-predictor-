@@ -16,11 +16,12 @@ members missing the mandatory minimum, derives computable clinical values, imput
 the rest from train medians/modes, and reports panel completeness + model
 confidence. We drive it by swapping its cached resource bundle per p12 model.
 
-Note on confidence weighting: graceful_scorer weights model_confidence by the
-LogReg frequency model's coefficients (tree models expose no per-feature coef_).
-We keep that LogReg coefficient basis FIXED as a stable clinical-importance weight
-for all three selectors, while only the *scoring* (calibrated) model swaps. So
-confidence stays apples-to-apples regardless of which model scores p12.
+Note on confidence weighting: model_confidence_pct is importance-weighted coverage
+of present features, and each p12 model weights it by ITS OWN importances — LogReg
+by abs(coef_), XGBoost/LightGBM by feature_importances_ (gain). We read those off
+the already-trained models ONCE at startup (READ-ONLY; nothing is refit) and pass
+the active model's weight vector into graceful_scorer per request, so the metric
+describes the model that is actually scoring — not a fixed foreign basis.
 """
 import os
 import sys
@@ -88,14 +89,17 @@ class ModelService:
         gs.TRAIN_CSV_PATH = TRAIN_CSV_PATH
 
         # Build one resource bundle per available p12 model. Bundles share the
-        # preprocessor / medians / coef basis and differ only in the scoring model.
+        # preprocessor / medians / feature mapping and differ in the scoring model
+        # AND in the confidence weighting basis (each model's own importances).
         for key, model_path in P12_MODELS.items():
             if not os.path.exists(model_path):
                 continue
             gs._R.clear()
             gs.MODEL_PATH = model_path
             gs._resources()                      # populates gs._R for this model
-            self._caches[key] = dict(gs._R)      # snapshot the bundle
+            bundle = dict(gs._R)                  # snapshot the bundle
+            self._build_conf_basis(key, bundle)  # weight vector from THIS model
+            self._caches[key] = bundle
         gs._R.clear()
 
         if DEFAULT_P12 not in self._caches:
@@ -110,6 +114,44 @@ class ModelService:
         dt = time.perf_counter() - t0
         print(f"[model_service] p12 models loaded: {sorted(self._caches)} "
               f"(default={DEFAULT_P12}) in {dt:.2f}s — loaded ONCE at startup")
+
+    # -- per-model confidence basis --------------------------------------
+    def _build_conf_basis(self, key, bundle):
+        """Read THIS model's own importances (READ-ONLY) into a weight vector for
+        model_confidence, aligned positionally to feat_names. Stores a feature->weight
+        dict on the bundle when usable, else marks the model's confidence unavailable
+        (no silent fallback to another model's weights). Length mismatch FAILS LOUD
+        inside importance_vector — a silent off-by-one would misattribute every weight."""
+        feat_names = bundle["feat_names"]
+        n = len(feat_names)
+        w, reason = gs.importance_vector(bundle["model"], n)   # raises on length mismatch
+        if w is None:
+            bundle["conf_available"] = False
+            bundle["conf_reason"] = reason
+            bundle["conf_weights"] = None
+            print(f"[model_service] confidence basis for '{key}': UNAVAILABLE — {reason}")
+            return
+        est = gs._base_estimator(bundle["model"])
+        basis = "feature_importances_ (gain)" if hasattr(est, "feature_importances_") else "abs(coef_)"
+        bundle["conf_available"] = True
+        bundle["conf_reason"] = None
+        bundle["conf_basis"] = basis
+        bundle["conf_weights"] = {feat_names[i]: float(w[i]) for i in range(n)}
+        n_nonzero = int(sum(1 for v in w if v != 0.0))
+        print(f"[model_service] confidence basis for '{key}': {basis} — "
+              f"len={len(w)} matches feature count={n} "
+              f"({n_nonzero}/{n} non-zero, sum={float(w.sum()):.4f})")
+
+    def confidence_basis(self):
+        """Per-model confidence availability + basis, for API/meta transparency."""
+        out = {}
+        for key, b in self._caches.items():
+            out[key] = {
+                "available": bool(b.get("conf_available")),
+                "basis": b.get("conf_basis"),
+                "reason": b.get("conf_reason"),
+            }
+        return out
 
     # -- introspection ----------------------------------------------------
     def available_p12_models(self):
@@ -175,9 +217,10 @@ class ModelService:
         """
         key = p12_model_key if p12_model_key in self._caches else DEFAULT_P12
         bundle = self._caches[key]
-        # Point graceful_scorer at the selected resource bundle, then score.
+        # Point graceful_scorer at the selected resource bundle, then score with
+        # THIS model's own confidence weights (None => confidence unavailable).
         gs._R = bundle
-        rows = gs.score_member(df.reset_index(drop=True))
+        rows = gs.score_member(df.reset_index(drop=True), weights=bundle["conf_weights"])
         if isinstance(rows, dict):   # single-row guard (df always -> list here)
             rows = [rows]
 
@@ -212,7 +255,7 @@ class ModelService:
         key = p12_model_key if p12_model_key in self._caches else DEFAULT_P12
         bundle = self._caches[key]
         gs._R = bundle
-        r = gs.score_member(dict(member))   # dict in -> dict out
+        r = gs.score_member(dict(member), weights=bundle["conf_weights"])   # dict in -> dict out
         one = pd.DataFrame([dict(member)])
         extra = self._score_extra_slots(one, bundle, [r["scored"]])
         return self._row_to_slots(r, extra, 0)

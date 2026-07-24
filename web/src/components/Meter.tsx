@@ -1,6 +1,7 @@
 // Meter — a labelled horizontal bar for the two confidence numbers a member
 // carries: panel completeness (clinical coverage) and model confidence
-// (coef-weighted coverage). Colour bands: >=80 green, >=50 amber, else red.
+// (importance-weighted coverage, per the active model's own basis). Colour
+// bands: >=80 green, >=50 amber, else red.
 export function Meter({
   label,
   pct,

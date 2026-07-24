@@ -11,6 +11,8 @@ import type {
 import { MetricCard } from "./MetricCard";
 import { Meter } from "./Meter";
 import { X } from "./icons";
+import { MODEL_LABEL } from "../lib/models";
+import type { P12Model } from "../types";
 
 const SLOT_ORDER: SlotKey[] = ["p12", "p24", "p36", "expected_cost"];
 
@@ -18,11 +20,13 @@ export function MemberDrawer({
   member,
   slots,
   provenance,
+  modelUsed,
   onClose,
 }: {
   member: MemberRow | null;
   slots: SlotDescriptor[];
   provenance: Provenance;
+  modelUsed: string;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -112,7 +116,9 @@ export function MemberDrawer({
           <Meter
             label="Model confidence"
             pct={member.model_confidence_pct}
-            hint="coefficient-weighted coverage of present features"
+            hint={`importance-weighted coverage of present features (${
+              MODEL_LABEL[modelUsed as P12Model] ?? modelUsed
+            })`}
           />
         </div>
 
