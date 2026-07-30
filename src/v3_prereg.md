@@ -117,6 +117,28 @@ accepted and declared rather than removed.
 **The sealed-test result in §13.2 carries no such bias**, and is the number that
 should be believed over any CV figure in §13.1.
 
+### 1.1 Amendment — pre-specified `C` sensitivity analysis
+
+*Added 2026-07-30, BEFORE the sealed read. Not a deviation.*
+
+The tie-break rule above was under-specified and never fired: only one exact tie
+existed at the maximum, so plain argmax selected **C = 10** — the *weakest*
+regularisation in the grid, at 6 events per feature. That is the opposite of the
+rule's intent. The CV surface is flat (mean CV PR-AUC 0.1060 → 0.1151 across four
+orders of magnitude, spread 0.0091), and eight of nine grid values sit within
+1 SD of the best; a 1-SE rule would have selected **C = 0.003**.
+
+**The registered primary remains C = 10.** It is not changed after the fact.
+
+**C = 0.003 is added as a pre-specified sensitivity analysis**, computed at the
+same single evaluation and reported alongside the primary. It does **not**
+replace the primary and does **not** license a second evaluation — both numbers
+come out of the one permitted pass over the sealed set.
+
+If the two diverge materially on the sealed set, that divergence is itself
+reported as a finding about **coefficient instability at this sample size**, not
+resolved by choosing whichever looks better.
+
 ## 2. Primary feature set — fixed now, on clinical grounds
 
 Seven features, chosen a priori. **Not selected by searching the training data.**
@@ -136,6 +158,30 @@ Seven features, chosen a priori. **Not selected by searching the training data.*
 The preprocessor emits 38 columns; the model consumes these 7. The remaining 31
 are available but **not used by the primary model**, and no post-hoc swap is
 permitted after seeing test results.
+
+### 2.1 Two coefficients are declared UNINTERPRETABLE in advance
+
+*Added 2026-07-30, BEFORE the sealed read. The feature set is UNCHANGED — these
+features stay in the model; only their coefficients are barred from
+interpretation.*
+
+**`egfr` — not independently identifiable.** eGFR is the CKD-EPI function of
+creatinine, age and sex. Regressed on those three it gives **R² = 0.9507**, and
+`corr(egfr, age) = −0.62`. Because `age` and `sex_male` are already in the model,
+eGFR is ~95% determined by variables already present; its coefficient flips from
++0.11 alone to +0.32 once `age` is added. This is a **specification flaw in the
+pre-registered feature set** — jointly owned by whoever chose and whoever
+approved it — and it is a lesson for the next feature set, not a defect patched
+mid-protocol.
+
+**`hba1c_percent` — noise, compounded by a data-source defect.** Univariate
+r = −0.048, with a non-monotone band gradient: 7.22% (<5.5) → 4.41% (5.5–5.7) →
+11.58% (5.7–6.5) → **0.00% (≥6.5, n=25, zero events)**. The zero-event diabetic
+band drives the negative sign; ~1.8 events were expected there. See §12.4 for the
+fill-value defect that plausibly explains the whole pattern.
+
+Both coefficients are reported **with these diagnoses attached** and are never
+presented as protective effects.
 
 ## 3. Secondary model — exploratory only
 
@@ -157,6 +203,23 @@ All four reported with **2,000-iteration bootstrap percentile confidence
 intervals** (stratified resampling of the evaluation set, `random_state=42`).
 
 **A point estimate never appears without its interval on the same line.**
+
+### 4.1 Mandatory caveat on any LogReg-vs-HistGB proper-scoring comparison
+
+*Added 2026-07-30, BEFORE the sealed read.*
+
+Whenever Brier or log-loss are compared between the primary and the exploratory
+model, **this paragraph travels with the table**:
+
+> The primary LogReg uses `class_weight='balanced'`, which pushes its predicted
+> probabilities toward 0.5; HistGB is unweighted, so its output sits near the
+> base rate. Comparing the two on a proper scoring rule compares a reweighted
+> model against an unweighted one — it is **not** a comparison of probability
+> estimators, and the gap is precisely what the §5 sigmoid calibration exists to
+> remove. The interval may be real; reading it as "HistGB is better calibrated
+> than LogReg can be" is wrong.
+
+Without this paragraph the table reads as HistGB winning. It is not optional.
 
 ## 5. Calibration
 
@@ -246,6 +309,25 @@ on the fixture is sound.
    two years receives identical lab values. Both resolve if a `person_id`
    becomes available upstream.
 
+### 12.4 `hba1c_percent` fill value — a defect in the REAL data, not the fixture
+
+*Added 2026-07-30, BEFORE the sealed read.*
+
+**168 of 576 training rows (29.2%) carry `hba1c_percent` exactly 5.4**, against
+38 distinct values overall. A single value holding nearly a third of the mass is
+consistent with a **fill/default**, not with a measurement distribution.
+
+**Consequence, stated plainly:** one of the seven pre-registered features is
+substantially non-informative *by construction*. This plausibly explains both the
+near-zero univariate correlation (r = −0.048) and the non-monotone band gradient
+recorded in §2.1 — the coefficient may be estimating nothing more than the
+difference between "measured" and "defaulted".
+
+**The feature set is unchanged.** This is logged as a data-source defect for the
+next iteration, and it means the effective number of informative features is
+plausibly six, not seven — worsening an events-per-feature ratio that was already
+below convention.
+
 ---
 
 ## 13. RESULTS — to be filled after evaluation, blanks only
@@ -275,16 +357,25 @@ Coefficients (standardised scale, primary model):
 
 ### 13.2 Sealed test evaluation — ONE run
 
-Test baseline positive rate: **9.27%** (38/410).
+Test baseline positive rate: **9.27%** (38/410). PR-AUC is stated against this,
+**not** against the 7.29% training baseline.
 
-| metric | primary LogReg | exploratory HistGB |
-|---|---|---|
-| PR-AUC [95% CI] | _____ | _____ |
-| AUC-ROC [95% CI] | _____ | _____ |
-| Brier [95% CI] | _____ | _____ |
-| log-loss [95% CI] | _____ | _____ |
+| metric | primary LogReg (C=10) | sensitivity LogReg (C=0.003) | exploratory HistGB |
+|---|---|---|---|
+| PR-AUC [95% CI] | _____ | _____ | _____ |
+| AUC-ROC [95% CI] | _____ | _____ | _____ |
+| Brier [95% CI] | _____ | _____ | _____ |
+| log-loss [95% CI] | _____ | _____ | _____ |
+
+Primary vs sensitivity — material divergence? _____
+(If yes, reported as a finding about coefficient instability at this sample
+size, per §1.1 — not resolved by preferring whichever looks better.)
+
+Paired bootstrap, primary vs HistGB (§4.1 caveat mandatory): _____
 
 Calibration: _____ (sigmoid applied / uncalibrated + reason)
+
+Age suppression (§6): rows above age 51 in the test set = _____ (suppressed)
 
 ### 13.3 Cohort table (real bands, n ≥ 30 only, age ≤ 51)
 
