@@ -336,62 +336,124 @@ below convention.
 
 | item | value |
 |---|---|
-| selected `C` | _____ |
-| CV PR-AUC (mean [95% CI]) | _____ |
-| CV AUC-ROC (mean [95% CI]) | _____ |
-| CV Brier (mean [95% CI]) | _____ |
-| CV log-loss (mean [95% CI]) | _____ |
+| selected `C` | **10** (flat surface: 0.1060 → 0.1151 across the grid, spread 0.0091) |
+| CV PR-AUC (mean [95% CI]) | **0.1199  [0.0832, 0.2036]** — train baseline 0.0729 |
+| CV AUC-ROC (mean [95% CI]) | **0.5869  [0.4993, 0.6709]** — includes 0.50 |
+| CV Brier (mean [95% CI]) | 0.2312  [0.2201, 0.2429] |
+| CV log-loss (mean [95% CI]) | 0.6563  [0.6303, 0.6838] |
+
+Fold-level spread (50 folds, 8–9 events each): PR-AUC 0.0673–0.4073,
+AUC-ROC 0.4209–0.7868. Any single-fold figure is meaningless at this event count.
 
 Coefficients (standardised scale, primary model):
 
 | feature | coefficient | direction as expected? |
 |---|---|---|
-| `age` | _____ | _____ |
-| `sex_male` | _____ | _____ |
-| `hba1c_percent` | _____ | _____ |
-| `systolic_bp_mmhg` | _____ | _____ |
-| `bmi` | _____ | _____ |
-| `egfr` | _____ | _____ |
-| `comorbidity_count` | _____ | _____ |
-| intercept | _____ | — |
+| `age` | +0.3235 | yes |
+| `sex_male` | −0.5720 | n/a — no a-priori sign |
+| `hba1c_percent` | −0.5726 | **no — UNINTERPRETABLE, see §2.1 + §12.4** |
+| `systolic_bp_mmhg` | +0.2155 | yes |
+| `bmi` | +0.2006 | yes |
+| `egfr` | +0.3665 | **no — UNINTERPRETABLE, see §2.1** |
+| `comorbidity_count` | +0.2213 | yes |
+| intercept | +0.0857 | — |
+
+Signs are directionally stable across the whole `C` grid; regularisation shrinks
+magnitude without correcting either contradiction.
 
 ### 13.2 Sealed test evaluation — ONE run
 
 Test baseline positive rate: **9.27%** (38/410). PR-AUC is stated against this,
 **not** against the 7.29% training baseline.
 
+Primary is sigmoid-calibrated per §5. Run once, 2026-07-30.
+
 | metric | primary LogReg (C=10) | sensitivity LogReg (C=0.003) | exploratory HistGB |
 |---|---|---|---|
-| PR-AUC [95% CI] | _____ | _____ | _____ |
-| AUC-ROC [95% CI] | _____ | _____ | _____ |
-| Brier [95% CI] | _____ | _____ | _____ |
-| log-loss [95% CI] | _____ | _____ | _____ |
+| PR-AUC [95% CI] | **0.1101  [0.0877, 0.1784]** | 0.0957  [0.0754, 0.1587] | 0.0998  [0.0844, 0.1332] |
+| AUC-ROC [95% CI] | **0.5383  [0.4420, 0.6348]** | 0.4585  [0.3547, 0.5642] | 0.5371  [0.4511, 0.6264] |
+| Brier [95% CI] | 0.0848  [0.0829, 0.0864] | 0.2443  [0.2406, 0.2480] | 0.0870  [0.0853, 0.0887] |
+| log-loss [95% CI] | 0.3132  [0.3026, 0.3228] | 0.6817  [0.6743, 0.6893] | 0.3301  [0.3150, 0.3459] |
 
-Primary vs sensitivity — material divergence? _____
-(If yes, reported as a finding about coefficient instability at this sample
-size, per §1.1 — not resolved by preferring whichever looks better.)
+Primary uncalibrated, for transparency: PR-AUC 0.1060 [0.0826, 0.1773],
+AUC-ROC 0.5123 [0.4181, 0.6100], Brier 0.2384 [0.2246, 0.2522],
+log-loss 0.6714 [0.6399, 0.7033].
 
-Paired bootstrap, primary vs HistGB (§4.1 caveat mandatory): _____
+**Primary vs sensitivity — material divergence? YES**, on AUC-ROC:
++0.0544 [+0.0023, +0.1040], interval excludes zero. PR-AUC, Brier and log-loss
+do not separate them. The sensitivity fit lands at **AUC 0.4585 — below chance**.
+Per §1.1 this is reported as a finding about **coefficient instability at this
+sample size**: two fits differing only in regularisation strength, on the same
+seven features and the same 576 rows, land on opposite sides of chance. It is
+**not** resolved by preferring the primary because it looks better.
 
-Calibration: _____ (sigmoid applied / uncalibrated + reason)
+**Paired bootstrap, primary vs HistGB** — no distinguishable ranking difference:
+PR-AUC +0.0124 [−0.0248, +0.0697], AUC-ROC −0.0243 [−0.1044, +0.0567], both
+intervals include zero. Brier +0.1511 [+0.1380, +0.1649] and log-loss
++0.3407 [+0.3101, +0.3724] exclude zero — **§4.1 caveat applies and is not
+optional**: that gap compares a `class_weight='balanced'` model against an
+unweighted one, not two probability estimators.
 
-Age suppression (§6): rows above age 51 in the test set = _____ (suppressed)
+**Calibration:** sigmoid applied per §5. **No reliability curve is drawn.**
+Quintile bins hold 5–12 events each; at least one bin is below 10, which cannot
+support a curve without implying precision the data does not contain. Aggregate
+calibration: mean predicted **0.0765** against observed **0.0927** — the model
+under-predicts the test prevalence.
+
+**Age suppression (§6): 0 rows** above age 51 in the test set (range 21–51), so
+no prediction was withheld here. The restriction still binds at serving time, and
+it means the 40+ band is validated only over ages 40–51.
 
 ### 13.3 Cohort table (real bands, n ≥ 30 only, age ≤ 51)
 
-| cohort | n | observed rate | mean predicted | suppressed? |
-|---|---|---|---|---|
-| _____ | _____ | _____ | _____ | _____ |
+| cohort | n | events | observed rate | mean predicted | suppressed? |
+|---|---:|---:|---:|---:|---|
+| `<30 · F` | 74 | 7 | 9.46% | 0.0905 | no |
+| `<30 · M` | 71 | 4 | 5.63% | 0.0585 | no |
+| `30-39 · F` | 114 | 16 | 14.04% | 0.0846 | no |
+| `30-39 · M` | 103 | 8 | 7.77% | 0.0626 | no |
+| `40+ · F` | 28 | 2 | — | — | **YES, n < 30** |
+| `40+ · M` | 20 | 1 | — | — | **YES, n < 30** |
+
+4 reportable cells, 2 suppressed. The model orders the four reportable cells
+correctly by sex (F above M in both age bands) but does not reproduce the
+observed ordering across age bands: it predicts `<30 · F` (0.0905) above
+`30-39 · F` (0.0846) while the observed rates run the other way (9.46% vs
+14.04%). At 7 and 16 events those cell rates carry very wide intervals, so this
+is not evidence of a systematic age effect in either direction.
 
 ### 13.4 Verdict against §9
 
-Does the AUC-ROC interval include 0.50? _____
-Does the PR-AUC interval include 0.0927? _____
-Conclusion: _____
+Does the AUC-ROC interval include 0.50? **YES** — [0.4420, 0.6348].
+Does the PR-AUC interval include 0.0927? **YES** — [0.0877, 0.1784].
+
+**Conclusion: both pre-registered null triggers fired. §9 applies as written.**
+
+> "A confidence interval on AUC-ROC that includes 0.50, or a PR-AUC interval
+>  that includes the 9.27% baseline, is a pre-specified possible outcome. It
+>  means 42 training events and 38 test events are insufficient to detect
+>  signal at this sample size. It does NOT mean AHC parameters lack predictive
+>  value for hospitalisation, and it does NOT mean the modelling approach is
+>  wrong. Those questions are not answerable with this dataset and remain
+>  open pending real TPA claims data at scale.
+>  Reported either way, unchanged."
+
+This is the outcome the recorded prior expectation in §9 anticipated: train CV
+gave AUC 0.5869 with a lower bound of 0.4993, so a test interval spanning 0.50
+is the expected result, not a surprise.
 
 ### 13.5 Exploratory synthetic→real comparison (§11)
 
-Value: _____ — reported only with both confounds named alongside.
+Value: **AUC 0.8741**, from fitting on the synthetic fixture and evaluating on
+the real *training* rows — a number that must be read alongside the fact that the
+generator was likely built from those same real rows, making the evaluation
+leaky, and that a synthetic-vs-real discriminator reaches AUC 0.999 on a
+float-precision fingerprint alone, so the two populations are trivially
+separable to a model.
+
+No synthetic→*test* variant was computed: it was not pre-registered, and adding
+an unregistered analysis to the single sealed pass is precisely what this
+protocol exists to prevent.
 
 ---
 
@@ -400,4 +462,20 @@ Value: _____ — reported only with both confounds named alongside.
 Any deviation is recorded here with date, what changed, and why. Nothing above
 is edited to accommodate it.
 
-_(none at time of commit)_
+**2026-07-30, after the sealed evaluation: NONE. No deviations occurred.**
+
+The single permitted evaluation ran once and completed without error. Every
+model, metric, band, threshold and suppression rule was as registered. Nothing
+was re-run, re-selected or re-specified after the sealed read.
+
+For the record, two things that are explicitly *not* deviations:
+
+* **A dry run preceded the sealed evaluation.** `src/v3_sealed_eval.py --dry-run`
+  substitutes `train_expanded_v3` for the test file so every code path executes
+  before the sealed set is opened. That is the fixture's registered purpose
+  (§0), it read no test data, and its numbers were discarded. It caught one bug:
+  cohort mean-predicted was averaging over rows the §6 age rule had suppressed.
+  Fixed before the sealed read — the test set contains no member above 51, so
+  the path never triggered in the real run regardless.
+* **The §1.1 sensitivity fit and the primary came out of the same single pass**,
+  as registered. No second evaluation occurred.
