@@ -70,6 +70,21 @@ only and frozen. 38 output features (27 continuous median-imputed + standardised
 11 binary zero-imputed and passed through unscaled). The 20 injected columns
 (14 labs + 6 flags) are gated off by `INCLUDE_SYNTHETIC_LABS = False`.
 
+### 0.1 Limitation — the sealing is blind for selection, not strictly blind
+
+The consequence of the target read documented in the header, stated plainly:
+
+**The test set is blind for model selection but not strictly blind.** The 9.27%
+prevalence was already known when the primary metric was chosen. Choosing PR-AUC
+as primary is a defensible choice for an imbalanced problem and would have been
+made from the training prevalence alone (7.29%) — but it was not made in
+ignorance of the test prevalence, and this document does not claim otherwise.
+
+No feature, hyperparameter, model family, threshold or fold assignment was
+informed by test data. The residual exposure is confined to the choice of which
+metric to headline, and to the cohort-band decision in §7, which used test cell
+counts to establish that finer bands would be unreportable.
+
 ---
 
 ## 1. Primary model
@@ -91,6 +106,16 @@ fold** — the frozen artifact is not used for cross-validation, because its
 scaler saw all 576 training rows and would leak distributional information
 across folds. The frozen artifact is used for the final single test evaluation,
 where fitting on the full training set and applying to held-out test is correct.
+
+**CV metrics reported here are selection-optimistic.** `C` is tuned on the same
+folds that report the cross-validated performance, so the reported CV figures
+are biased upward by the selection itself. Nested cross-validation — the correct
+remedy — is not viable at 42 positives: the inner folds would hold roughly 1–2
+events each, and the resulting estimate would be noise. The bias is therefore
+accepted and declared rather than removed.
+
+**The sealed-test result in §13.2 carries no such bias**, and is the number that
+should be believed over any CV figure in §13.1.
 
 ## 2. Primary feature set — fixed now, on clinical grounds
 
