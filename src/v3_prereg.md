@@ -1,7 +1,27 @@
 # Pre-registration — v3 real-data hospitalisation model
 
-**Status:** COMMITTED BEFORE EVALUATION. No test-set target has been read.
+**Status:** COMMITTED BEFORE EVALUATION.
 **Written:** 2026-07-30
+
+### Exactly what has been read from the sealed test set
+
+Stating this precisely, because "sealed" is a claim that has to be auditable
+rather than asserted.
+
+**Has been read** — during the approved step-2 filter report, for descriptive
+baseline statistics only:
+
+* the positive count and rate (38 / 410 = 9.27%),
+* age × gender cohort cell sizes and their observed rates,
+* feature columns (no target) for the train/test transform-shift diff in step 3.
+
+**Has not happened:** no model has been fit on it, scored against it, or
+evaluated on it; no feature, hyperparameter, model family, threshold or
+reporting choice in this document was informed by it. The 9.27% baseline appears
+below because a PR-AUC is meaningless without the prevalence it is measured
+against — it is the denominator of the primary metric, not a result.
+
+The single evaluation in §8 remains untouched and unrun.
 **Target:** `had_hospitalisation` (binary). This is **NOT** "claim" — the legacy
 `claim_next_12m` target, the `BASE_CLAIM_RATE = 0.1604` constant, and all
 "claim probability" copy in the app belong to a different target on a different
