@@ -1,0 +1,262 @@
+{
+  "step": "4.2 cross-validation on train_real_v3 only",
+  "n_rows": 576,
+  "n_positives": 42,
+  "base_rate": 0.07291666666666667,
+  "features": [
+    "age",
+    "sex_male",
+    "hba1c_percent",
+    "systolic_bp_mmhg",
+    "bmi",
+    "egfr",
+    "comorbidity_count"
+  ],
+  "events_per_feature": 6.0,
+  "cv": {
+    "n_splits": 5,
+    "n_repeats": 10,
+    "seed": 42,
+    "preprocessing_refit_per_fold": true
+  },
+  "c_surface": [
+    {
+      "C": 0.001,
+      "pr_auc": 0.10601120015963898,
+      "sd": 0.006321337522741602,
+      "auc": 0.5702782236490103
+    },
+    {
+      "C": 0.003,
+      "pr_auc": 0.10884043271729957,
+      "sd": 0.0067471026210343555,
+      "auc": 0.5757758159443552
+    },
+    {
+      "C": 0.01,
+      "pr_auc": 0.11190583783258248,
+      "sd": 0.007235489980371932,
+      "auc": 0.5804931335830212
+    },
+    {
+      "C": 0.03,
+      "pr_auc": 0.11413052542943936,
+      "sd": 0.007161851981577878,
+      "auc": 0.5828027465667915
+    },
+    {
+      "C": 0.1,
+      "pr_auc": 0.11425819003332705,
+      "sd": 0.007244746422248653,
+      "auc": 0.5846486534688783
+    },
+    {
+      "C": 0.3,
+      "pr_auc": 0.11473062891170246,
+      "sd": 0.00871386687705077,
+      "auc": 0.5858747993579454
+    },
+    {
+      "C": 1,
+      "pr_auc": 0.11496937144907737,
+      "sd": 0.008559165809536844,
+      "auc": 0.5864856429463171
+    },
+    {
+      "C": 3,
+      "pr_auc": 0.11500125082507254,
+      "sd": 0.00864674474582786,
+      "auc": 0.5865146245764224
+    },
+    {
+      "C": 10,
+      "pr_auc": 0.1150833210539629,
+      "sd": 0.008598449764193963,
+      "auc": 0.5866461565899768
+    }
+  ],
+  "selected_C": 10.0,
+  "selection_optimistic": true,
+  "cv_metrics": {
+    "LogReg (primary)": {
+      "pr_auc": {
+        "point": 0.1199160473614604,
+        "ci": [
+          0.08321398174593579,
+          0.2036375731591516
+        ],
+        "per_repeat_min": 0.10276595542169244,
+        "per_repeat_max": 0.12792575869721579
+      },
+      "auc_roc": {
+        "point": 0.5868557160691993,
+        "ci": [
+          0.4992776886035313,
+          0.670913590155163
+        ],
+        "per_repeat_min": 0.5508293204922418,
+        "per_repeat_max": 0.606696985910469
+      },
+      "brier": {
+        "point": 0.23119607255086605,
+        "ci": [
+          0.22007471741120205,
+          0.24291059005351254
+        ],
+        "per_repeat_min": 0.22840025165488076,
+        "per_repeat_max": 0.23624371565082722
+      },
+      "logloss": {
+        "point": 0.656325803829553,
+        "ci": [
+          0.630315933364215,
+          0.6837778953244583
+        ],
+        "per_repeat_min": 0.6496809490684324,
+        "per_repeat_max": 0.6700975851083055
+      }
+    },
+    "HistGB (exploratory)": {
+      "pr_auc": {
+        "point": 0.17240827348498583,
+        "ci": [
+          0.1012333082061453,
+          0.3019221335793093
+        ],
+        "per_repeat_min": 0.11055034285383637,
+        "per_repeat_max": 0.17405344052314806
+      },
+      "auc_roc": {
+        "point": 0.5557784911717496,
+        "ci": [
+          0.43850878366327806,
+          0.6636113340467272
+        ],
+        "per_repeat_min": 0.5148029249152845,
+        "per_repeat_max": 0.5924068129124309
+      },
+      "brier": {
+        "point": 0.06658190712632736,
+        "ci": [
+          0.06216412029395193,
+          0.07089221072694613
+        ],
+        "per_repeat_min": 0.066458204498624,
+        "per_repeat_max": 0.07050390316308827
+      },
+      "logloss": {
+        "point": 0.2677091271919962,
+        "ci": [
+          0.2449338647337041,
+          0.29217245141695325
+        ],
+        "per_repeat_min": 0.2642684642711188,
+        "per_repeat_max": 0.2860630055249239
+      }
+    }
+  },
+  "paired_bootstrap": {
+    "pr_auc": {
+      "mean_diff": -0.05643607117718791,
+      "ci": [
+        -0.13951049624772738,
+        0.018237703151494693
+      ],
+      "excludes_zero": false
+    },
+    "auc_roc": {
+      "mean_diff": 0.031242576243980733,
+      "ci": [
+        -0.07950552880328167,
+        0.1448669074371322
+      ],
+      "excludes_zero": false
+    },
+    "brier": {
+      "mean_diff": 0.16447704001098745,
+      "ci": [
+        0.1540394578120913,
+        0.17576824168555827
+      ],
+      "excludes_zero": true
+    },
+    "logloss": {
+      "mean_diff": 0.3879632722051158,
+      "ci": [
+        0.3568308205633915,
+        0.42026920203621926
+      ],
+      "excludes_zero": true
+    }
+  },
+  "coefficients": {
+    "age": {
+      "beta_standardised": 0.3234822189684812,
+      "beta_clinical_unit": 0.0480526671285694,
+      "odds_ratio": 1.6169257663509218,
+      "increment": "per +10 years",
+      "expected_sign": 1,
+      "observed_sign": 1,
+      "contradicts": false
+    },
+    "hba1c_percent": {
+      "beta_standardised": -0.5726339838190154,
+      "beta_clinical_unit": -0.8628059836110733,
+      "odds_ratio": 0.4219763607855167,
+      "increment": "per +1 %",
+      "expected_sign": 1,
+      "observed_sign": -1,
+      "contradicts": true
+    },
+    "systolic_bp_mmhg": {
+      "beta_standardised": 0.2155360820741649,
+      "beta_clinical_unit": 0.020882898055441742,
+      "odds_ratio": 1.2322342444919283,
+      "increment": "per +10 mmHg",
+      "expected_sign": 1,
+      "observed_sign": 1,
+      "contradicts": false
+    },
+    "bmi": {
+      "beta_standardised": 0.2006370096641238,
+      "beta_clinical_unit": 0.059323999927535585,
+      "odds_ratio": 1.3453039863024319,
+      "increment": "per +5 kg/m\u00b2",
+      "expected_sign": 1,
+      "observed_sign": 1,
+      "contradicts": false
+    },
+    "egfr": {
+      "beta_standardised": 0.3665082300832186,
+      "beta_clinical_unit": 0.03734722250534693,
+      "odds_ratio": 1.4527702123681465,
+      "increment": "per +10 mL/min/1.73m\u00b2",
+      "expected_sign": -1,
+      "observed_sign": 1,
+      "contradicts": true
+    },
+    "comorbidity_count": {
+      "beta_standardised": 0.2212664891166674,
+      "beta_clinical_unit": 0.2641073114469461,
+      "odds_ratio": 1.3022679370595058,
+      "increment": "per +1 condition",
+      "expected_sign": 1,
+      "observed_sign": 1,
+      "contradicts": false
+    },
+    "sex_male": {
+      "beta_standardised": -0.5720041848832396,
+      "beta_clinical_unit": -0.5720041848832396,
+      "odds_ratio": 0.5643931561949563,
+      "increment": "male vs female",
+      "expected_sign": 0,
+      "observed_sign": -1,
+      "contradicts": false
+    }
+  },
+  "intercept": 0.08574616047752613,
+  "contradicting_signs": [
+    "hba1c_percent",
+    "egfr"
+  ]
+}
