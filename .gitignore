@@ -1,6 +1,9 @@
 __pycache__/
 *.pyc
 
+# Project virtualenv (recreate from requirements.txt)
+.venv/
+
 # Large synthetic datasets (regenerable from fix_ahc.py / fix_ahc_v2.py) — kept out of git
 healthbridge_ahc_modelready_100k.csv
 models/v2_compounded/healthbridge_ahc_v2_compounded_100k.csv

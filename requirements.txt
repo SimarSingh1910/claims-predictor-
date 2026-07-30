@@ -1,0 +1,25 @@
+# HealthBridge Claim Engine — pinned runtime + training dependencies.
+#
+# Install into a PROJECT venv (never the system Python):
+#     python -m venv .venv
+#     .venv\Scripts\python.exe -m pip install -r requirements.txt     (Windows)
+#     .venv/bin/python -m pip install -r requirements.txt             (macOS/Linux)
+#
+# NOTE: the committed joblib artifacts under models/ were pickled with an older
+# scikit-learn. Loading them under 1.9.0 emits InconsistentVersionWarning. The
+# v3 retraining path refits everything under these pins, so new artifacts are
+# self-consistent; the legacy synthetic artifacts stay readable but are frozen.
+
+# --- data / modelling ---
+numpy==2.5.1
+pandas==3.0.5
+scipy==1.18.0
+scikit-learn==1.9.0
+xgboost==3.3.0
+lightgbm==4.7.0
+joblib==1.5.3
+
+# --- API ---
+fastapi==0.141.1
+uvicorn==0.52.0
+python-multipart==0.0.32
