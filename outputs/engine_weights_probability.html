@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claim Engine — Weights, Calibration and How a Probability Is Decided</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$']] },
+  svg: { fontCache: 'global' },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+  :root{
+    --ink:#12242B; --ink-soft:#44595F; --paper:#EDF2F2; --card:#FCFDFD;
+    --line:#CBD7D8; --teal:#0E7C75; --teal-deep:#0A5A55; --teal-soft:#E3F3F0;
+    --amber:#B4701C; --amber-soft:#F9EEDB; --amber-line:#E5D3B4;
+    --violet:#5B4A8A; --violet-soft:#EEEAF5; --violet-line:#D9D2E8;
+    --coral:#A6402F; --coral-soft:#F9E9E5; --coral-line:#E9C8C0;
+    --green:#1F7A47; --green-soft:#E5F1E9; --green-line:#C3DECD;
+    --disp:'Space Grotesk',system-ui,sans-serif; --body:'Inter',system-ui,sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box} html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:0 26px}
+
+  header{padding:52px 0 26px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal-deep);margin:0 0 14px;display:flex;gap:9px;align-items:center}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--teal)}
+  h1{font-family:var(--disp);font-weight:700;font-size:clamp(26px,4.2vw,38px);line-height:1.08;letter-spacing:-.02em;margin:0 0 14px}
+  .lede{font-size:17px;color:var(--ink-soft);max-width:68ch;margin:0}
+
+  nav.toc{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:15px 18px;margin:24px 0 0;display:flex;flex-wrap:wrap;gap:8px}
+  nav.toc a{font-family:var(--mono);font-size:11.5px;text-decoration:none;color:var(--teal-deep);background:var(--teal-soft);border:1px solid #C6E3DC;border-radius:20px;padding:6px 12px}
+  nav.toc a:hover{background:var(--teal);color:#fff}
+
+  h2{font-family:var(--disp);font-weight:600;font-size:25px;letter-spacing:-.01em;margin:48px 0 6px;padding-top:6px}
+  h3{font-family:var(--disp);font-weight:600;font-size:18px;margin:28px 0 8px}
+  .sub{color:var(--ink-soft);margin:0 0 20px;font-size:15.5px;max-width:74ch}
+  p{font-size:15.5px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin:0 0 15px}
+  .card.v{border-left:4px solid var(--violet)} .card.t{border-left:4px solid var(--teal)}
+  .card.a{border-left:4px solid var(--amber)} .card.c{border-left:4px solid var(--coral)}
+  .card .ct{font-family:var(--disp);font-weight:600;font-size:17px;margin:0 0 9px}
+  .card p{margin:0 0 10px}.card p:last-child{margin:0}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14.5px;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  th{background:#E5EEEE;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--teal-deep);text-align:left;padding:10px 13px;font-weight:500}
+  td{padding:10px 13px;border-top:1px solid var(--line);vertical-align:top}
+  td.num,th.num{text-align:right;font-family:var(--mono)}
+  td code{font-family:var(--mono);font-size:13px;color:var(--teal-deep)}
+  tr.hi td{background:#FDF4E8;font-weight:500}
+  tr.go td{background:var(--green-soft)}
+
+  .loop{background:#F1F6F6;border:1px dashed var(--line);border-radius:9px;padding:16px 20px;margin:14px 0;font-family:var(--mono);font-size:13px;line-height:2;color:var(--teal-deep);white-space:pre;overflow-x:auto}
+  .loop b{font-weight:500;color:var(--coral)}
+
+  .mj{background:#F1F6F6;border:1px dashed var(--line);border-radius:8px;padding:4px 18px;margin:13px 0;overflow-x:auto}
+  .eq{background:#F1F6F6;border:1px dashed var(--line);border-radius:8px;padding:12px 18px;margin:13px 0;font-family:var(--mono);font-size:14px;color:var(--teal-deep);text-align:center;overflow-x:auto}
+
+  .why{border-left:2px solid var(--line);padding-left:14px;color:var(--ink-soft);font-size:14.5px;margin:12px 0 0}
+  .why b{color:var(--ink)}
+
+  .worked{background:var(--green-soft);border:1px solid var(--green-line);border-radius:9px;padding:14px 18px;margin:14px 0;font-size:14.8px}
+  .worked .k{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);display:block;margin:0 0 7px}
+
+  .callout{border-radius:11px;padding:16px 20px;margin:16px 0;font-size:15px}
+  .callout.warn{background:var(--amber-soft);border:1px solid var(--amber-line);color:#5e3a0e}
+  .callout.key{background:var(--coral-soft);border:1px solid var(--coral-line);color:#7a2b1d}
+  .callout .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;display:block;margin:0 0 8px;opacity:.85}
+
+  .scale{display:flex;align-items:stretch;margin:16px 0;border-radius:8px;overflow:hidden;border:1px solid var(--line);font-family:var(--mono);font-size:12px}
+  .scale div{padding:11px 8px;text-align:center;flex:1}
+  .s1{background:var(--green-soft);color:var(--green)}
+  .s2{background:var(--amber-soft);color:#7d4c11}
+  .s3{background:var(--coral-soft);color:#7d2e20}
+  .marker{background:var(--ink);color:#fff;flex:0 0 78px !important;font-weight:500}
+
+  .bar{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:13.5px}
+  .bar .lab{font-family:var(--mono);font-size:12px;color:var(--ink-soft);flex:0 0 88px}
+  .bar .track{flex:1;height:15px;background:#E3EAEA;border-radius:8px;overflow:hidden}
+  .bar .fill{height:100%;background:var(--violet);border-radius:8px}
+  .bar .val{font-family:var(--mono);font-size:12px;flex:0 0 64px;text-align:right}
+
+  .dark{background:var(--ink);color:#DBE7E7;border-radius:12px;padding:22px 24px;margin:20px 0}
+  .dark .k{font-family:var(--mono);color:#63CBC1;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;display:block;margin:0 0 11px}
+  .dark b{color:#fff} .dark p{margin:0 0 10px;font-size:15px} .dark p:last-child{margin:0}
+
+  footer{font-family:var(--mono);font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding:18px 0 56px;margin-top:44px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  @media print{body{background:#fff}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow"><span class="dot"></span> HealthBridge · Claim Engine</p>
+  <h1>How the engine learns its weights, and how it decides a probability</h1>
+  <p class="lede">Four questions in order: when the weights are set, how they change as training progresses, how a probability is finally arrived at, and what the engine does with a measurement that falls far outside the normal range.</p>
+  <nav class="toc">
+    <a href="#q1">1 · when weights are set</a>
+    <a href="#q2">2 · how they change</a>
+    <a href="#q3">3 · deciding probability</a>
+    <a href="#q4">4 · HbA1c = 8 worked</a>
+  </nav>
+</header>
+
+<h2 id="q1">1 · When and how the weights are set</h2>
+<p class="sub">The most important point first: <b>weights are learned once, during training, and frozen afterwards.</b> When a user uploads a spreadsheet, nothing is learned or adjusted — the engine reads numbers it already holds and applies them.</p>
+
+<table>
+  <tr><th>Phase</th><th>When</th><th>What happens to the weights</th></tr>
+  <tr class="hi"><td><b>Training</b></td><td>Offline, once</td><td>Weights are <b>discovered</b> from past members whose outcome is known</td></tr>
+  <tr><td><b>Calibration</b></td><td>Offline, straight after</td><td>A correction curve is fitted on members held back from training</td></tr>
+  <tr class="go"><td><b>Scoring</b></td><td>Every upload, live</td><td><b>Nothing changes.</b> Stored weights are read and applied</td></tr>
+</table>
+
+<h3>What the engine actually stores</h3>
+<p>The engine does not hold a single weight for each health parameter. It holds <b>400 small decision trees</b>, and each tree stores two kinds of number:</p>
+
+<table>
+  <tr><th>Stored item</th><th>Example</th><th>What it means</th></tr>
+  <tr><td>A cut-point</td><td><code>HbA1c &lt; 6.45</code></td><td>the question this branch asks</td></tr>
+  <tr><td>A leaf value</td><td><code>−0.083</code></td><td>the nudge given to whoever ends up here</td></tr>
+</table>
+
+<div class="mj">$$s(\mathbf{x}) \;=\; \sum_{k=1}^{400} f_k(\mathbf{x})$$</div>
+<p>A member's score is simply the sum of the 400 leaf values they land on — that is all the expression above says: \(f_k(\mathbf{x})\) is the leaf value tree \(k\) gives this member. The "importance" percentages shown in the interface are worked out <em>afterwards</em>, by counting how much each parameter's cut-points reduced error during training — they are a summary for humans, not something the engine consults when scoring.</p>
+
+<h3>How the weights are found</h3>
+<p>Training is a repeated guess-and-correct loop. The engine begins knowing nothing, predicts, sees how wrong it was, and adjusts — four hundred times over.</p>
+
+<div class="loop">start:   no trees, everyone gets the base rate       <b>knows nothing</b>
+
+repeat 400 times:
+   1. predict a risk for all 627 training members
+   2. compare against what actually happened      <b>the error</b>
+   3. build one small tree that targets that error
+   4. keep only 5% of what it suggests            <b>learning rate 0.05</b>
+
+stop:    all 400 trees frozen and saved to disk</div>
+
+<div class="mj">$$s^{(t)} \;=\; s^{(t-1)} \;+\; \eta\, f_t(\mathbf{x}), \qquad \eta = 0.05$$</div>
+<p class="eqnote" style="font-size:13.5px;color:var(--ink-soft);margin:-6px 0 12px 4px">The score after round \(t\) is the score before it, plus 5% of what the new tree suggests.</p>
+
+<p class="why"><b>Why keep only 5% of each correction?</b> Applying the full adjustment would let one batch of members swing the engine hard, and on 627 rows it would chase coincidence. Small repeated steps let genuine patterns build up while random quirks cancel out — steering rather than swerving.</p>
+
+<div class="callout warn">
+  <span class="k">The most common misunderstanding</span>
+  The engine does <b>not</b> learn from data a user uploads. Upload 500 employees today and they are scored using weights fixed weeks ago; nothing about them is absorbed. Bringing in new information requires a <b>deliberate retraining run</b>, after which the new file is placed in the engine's model slot. That separation is intentional: it means any scoring run can be reproduced exactly, and cannot be quietly altered by whoever uploads next.
+</div>
+
+<h2 id="q2">2 · How the weights change as training proceeds</h2>
+<p class="sub">The 400 trees are not built independently. Each one is constructed specifically to fix what the trees before it still get wrong, so their character changes markedly from the first round to the last.</p>
+
+<div class="card v">
+  <div class="ct">Early rounds — the obvious patterns</div>
+  <p>At round one the engine predicts the same base rate for everybody, so it is badly wrong about every member who claimed. The first trees therefore pick up the strongest, broadest signals — the ones that separate large groups at once, such as age band and relationship to the employee.</p>
+  <p class="why">Leaf values in these rounds are <b>large</b>, because there is a great deal of error available to remove.</p>
+</div>
+
+<div class="card v">
+  <div class="ct">Middle rounds — the combinations</div>
+  <p>With the broad patterns handled, the remaining errors sit with members who look ordinary on any single measure but are unusual in combination. These rounds build trees whose branches chain conditions together — raised blood sugar <em>and</em> reduced kidney function <em>and</em> raised blood pressure.</p>
+  <div class="mj">$$w_j \;=\; -\frac{G_j}{H_j + \lambda}$$</div>
+  <p style="font-size:13.5px;color:var(--ink-soft);margin:-4px 0 10px">Each leaf value is the <b>total remaining error</b> \(G_j\) of the members landing there, divided by how <b>confident</b> \(H_j\) the engine already is about them — damped by \(\lambda\) so small groups cannot produce extreme values.</p>
+  <p class="why">This is where compounding health risk gets captured, and it is the main reason a rule-based engine was chosen over a simple scorecard.</p>
+</div>
+
+<div class="card v">
+  <div class="ct">Late rounds — fine adjustment</div>
+  <p>By round three hundred most of the recoverable error is gone. The remaining trees make small refinements to narrow groups, and their leaf values shrink accordingly.</p>
+  <p class="why"><b>This is also where over-fitting begins.</b> Left unchecked, the engine starts memorising individual members rather than patterns. Three limits prevent it: trees may be at most four questions deep, no branch may be built on fewer than five members' worth of evidence, and each tree sees only 80% of the parameters.</p>
+</div>
+
+<h3>One member's score, tracked across the rounds</h3>
+<p class="sub">Illustrative, showing the shape of the process: corrections are large at first and taper as the engine runs out of error to remove.</p>
+
+<div class="bar"><span class="lab">round 1</span><span class="track"><span class="fill" style="width:96%"></span></span><span class="val">−2.44</span></div>
+<div class="bar"><span class="lab">round 25</span><span class="track"><span class="fill" style="width:88%"></span></span><span class="val">−2.24</span></div>
+<div class="bar"><span class="lab">round 100</span><span class="track"><span class="fill" style="width:82%"></span></span><span class="val">−2.08</span></div>
+<div class="bar"><span class="lab">round 250</span><span class="track"><span class="fill" style="width:78%"></span></span><span class="val">−1.98</span></div>
+<div class="bar"><span class="lab">round 400</span><span class="track"><span class="fill" style="width:77%"></span></span><span class="val">−1.95</span></div>
+
+<p class="why"><b>Reading this:</b> the score moves a long way early and barely at all late. The last hundred rounds contribute less than the first ten. That taper is the sign of a healthy training run — if the score were still moving sharply at round 400, the engine would be learning noise rather than converging.</p>
+
+<h3>One thing that never changes</h3>
+<p>Every tree is built on the same fixed set of health parameters, with the same clinical thresholds and the same derived values. Training decides <em>how much each pattern counts</em>; it never changes <em>what is measured</em>. Adding a new parameter is a deliberate engineering change, not something the engine can do on its own.</p>
+
+<h2 id="q3">3 · How the probability is decided</h2>
+<p class="sub">Three steps sit between the engine's internal score and the percentage shown on screen. The third is where most systems quietly go wrong.</p>
+
+<div class="card t">
+  <div class="ct">Step 1 — Add up the evidence</div>
+  <p>The member is dropped through all 400 trees. Each one lands them on a leaf, and those 400 leaf values are added together.</p>
+  <div class="mj">$$s \;=\; f_1(\mathbf{x}) + f_2(\mathbf{x}) + \dots + f_{400}(\mathbf{x}) \;=\; -1.95$$</div>
+  <p class="why">This is not a percentage yet — it is an open-ended score, typically somewhere between −5 and +5. Negative means "less likely than average", positive means "more".</p>
+</div>
+
+<div class="card t">
+  <div class="ct">Step 2 — Convert to a percentage</div>
+  <p>A standard curve maps any score onto 0–100%. Very negative scores approach zero, very positive approach one hundred, and a score of zero maps to fifty.</p>
+  <div class="mj">$$p_{\text{raw}} \;=\; \frac{1}{1 + e^{-s}}$$</div>
+  <table style="margin-bottom:6px">
+    <tr><th class="num">raw score</th><th class="num">−3</th><th class="num">−2</th><th class="num">−1</th><th class="num">0</th><th class="num">+2</th></tr>
+    <tr><td><b>becomes</b></td><td class="num">4.7%</td><td class="num">11.9%</td><td class="num">26.9%</td><td class="num">50%</td><td class="num">88.1%</td></tr>
+  </table>
+</div>
+
+<div class="card a">
+  <div class="ct">Step 3 — Correct it (the step that matters)</div>
+  <p>That percentage is <b>systematically too high</b>, and predictably so. During training, members who claimed were counted roughly \(\omega \approx 11.5\) times more heavily than those who did not — necessary, because at an 8% claim rate the engine would otherwise learn to say "no claim" for everybody and be right most of the time. The side effect is that every probability comes out inflated.</p>
+  <p>The correction is a lookup table built from members deliberately held back from training. It answers one question: <em>when the engine said this, what actually happened?</em></p>
+  <table style="margin-bottom:6px">
+    <tr><th>Engine said</th><th>What actually happened</th><th>Corrected to</th></tr>
+    <tr><td class="num">0.20</td><td>9 of 74 claimed</td><td class="num">0.12</td></tr>
+    <tr><td class="num">0.30</td><td>13 of 71 claimed</td><td class="num">0.18</td></tr>
+    <tr><td class="num">0.55</td><td>27 of 60 claimed</td><td class="num">0.45</td></tr>
+  </table>
+  <div class="mj">$$p \;=\; g\bigl(p_{\text{raw}}\bigr), \qquad a \le b \;\Rightarrow\; g(a) \le g(b)$$</div>
+  <p style="font-size:13.5px;color:var(--ink-soft);margin:-4px 0 10px">The second condition is the guarantee that matters: \(g\) never decreases, so the order of members is preserved exactly.</p>
+  <p class="why">The correction moves numbers <b>up or down together</b> — it never reorders members. The highest-risk member before correction is still the highest-risk after. Only the meaning of the number changes.</p>
+</div>
+
+<table>
+  <tr><th>Effect of the correction</th><th class="num">before</th><th class="num">after</th></tr>
+  <tr><td>Accuracy of the stated probability <span style="color:var(--ink-soft)">(lower = better)</span></td><td class="num">0.156</td><td class="num">0.097</td></tr>
+  <tr><td>Scale <span style="color:var(--ink-soft)">(1.0 = ideal)</span></td><td class="num">0.94</td><td class="num">0.97</td></tr>
+  <tr><td>Offset <span style="color:var(--ink-soft)">(0 = ideal)</span></td><td class="num">−1.633</td><td class="num">−0.046</td></tr>
+</table>
+
+<div class="callout key">
+  <span class="k">Why this step is not optional</span>
+  A premium is a probability multiplied by a cost. If the probabilities are inflated by 60%, so is every premium. Getting the <b>ranking</b> right is not enough for pricing — the number itself has to mean what it says. This is the difference between a system that sorts people correctly and one you can put money behind.
+</div>
+
+<h3>The final decision</h3>
+<p>The corrected probability is compared against a threshold to produce the yes/no flag:</p>
+<div class="mj">$$\hat{y} = \begin{cases} 1 \;\text{(flagged high risk)}, & p \ge \tau \\[3pt] 0 \;\text{(not flagged)}, & p < \tau \end{cases} \qquad \tau = 0.30$$</div>
+<p class="why"><b>The threshold is a business choice, not a technical one.</b> Lower it and more members are flagged — more real claimants caught, but more false alarms too. Raise it and flags become rarer but more reliable. The engine supplies the probability; the organisation decides what to do with it.</p>
+
+<h2 id="q4">4 · Worked example — HbA1c of 8 when normal tops out at 5.5</h2>
+
+<div class="scale">
+  <div class="s1">normal<br>3.0 – 5.6</div>
+  <div class="s2">pre-diabetic<br>5.7 – 6.4</div>
+  <div class="s3">diabetic<br>6.5 +</div>
+  <div class="marker">this member<br>8.0</div>
+</div>
+
+<p><b>First, what does not happen.</b> The value is not rejected, not capped at 5.5, and not treated as an error. An HbA1c of 8 is a real and clinically meaningful reading — a person with poorly controlled diabetes. Discarding or trimming it would throw away the strongest information in the record.</p>
+
+<h3>One measurement enters through six doors</h3>
+<table>
+  <tr><th>Route</th><th class="num">Value</th><th>Why it exists</th></tr>
+  <tr><td>Raw reading</td><td class="num">8.0</td><td>kept exactly as measured</td></tr>
+  <tr class="hi"><td>Diabetic flag &nbsp;\(\mathbb{1}[\text{HbA1c} \ge 6.5]\)</td><td class="num">1</td><td>crosses the 6.5 clinical line</td></tr>
+  <tr><td>Pre-diabetic flag</td><td class="num">0</td><td>past pre-diabetic, into diabetic</td></tr>
+  <tr><td>Condition count &nbsp;\(C=\sum_k \mathbb{1}_k\)</td><td class="num">+1</td><td>one more abnormal finding met</td></tr>
+  <tr><td>Estimated average glucose</td><td class="num">182.9</td><td>\(28.7 \times \text{HbA1c} - 46.7\)</td></tr>
+  <tr class="hi"><td>Diabetes × kidney marker</td><td class="num">1 if kidney function low</td><td>the two compound each other</td></tr>
+</table>
+<p class="why">Deliberate duplication: the raw number carries <b>severity</b>, the flag carries the <b>clinical boundary</b>, and the combined marker carries the <b>compounding effect</b> of diabetes alongside kidney impairment. No single representation captures all three.</p>
+
+<h3>How the engine handles the value itself</h3>
+<p>The engine never asks "how far above normal is this?". Every tree asks only a yes/no question about which side of a cut-point the value falls:</p>
+<div class="mj">$$\text{HbA1c} < 6.45 \;?\quad 8.0 \not< 6.45 \;\Rightarrow\; \text{right branch}$$</div>
+
+<p>Which leads to the result that surprises most people:</p>
+<table>
+  <tr><th>Member</th><th class="num">HbA1c</th><th>Answer at this cut-point</th><th>Where they land</th></tr>
+  <tr class="go"><td>A</td><td class="num">6.5</td><td>not below 6.45</td><td>same leaf</td></tr>
+  <tr class="go"><td>B</td><td class="num">8.0</td><td>not below 6.45</td><td>same leaf</td></tr>
+  <tr class="go"><td>C</td><td class="num">14.0</td><td>not below 6.45</td><td>same leaf</td></tr>
+</table>
+<p><b>All three receive an identical contribution from that one tree.</b> It records which side of the line they are on and discards how far past it they went.</p>
+
+<h3>So how is severity captured at all?</h3>
+<p>Because the 400 trees do not all use the same cut-point. Training discovers several, at different places along the scale, and a member clears as many as their value allows:</p>
+
+<table>
+  <tr><th>Tree</th><th>Cut-point</th><th class="num">HbA1c 8.0</th><th class="num">HbA1c 14.0</th></tr>
+  <tr><td>tree 12</td><td>below 6.45?</td><td class="num">cleared</td><td class="num">cleared</td></tr>
+  <tr><td>tree 87</td><td>below 7.20?</td><td class="num">cleared</td><td class="num">cleared</td></tr>
+  <tr class="hi"><td>tree 203</td><td>below 9.10?</td><td class="num">not cleared</td><td class="num">cleared</td></tr>
+  <tr><td>tree 341</td><td>below 11.5?</td><td class="num">not cleared</td><td class="num">cleared</td></tr>
+</table>
+<div class="mj">$$\text{severity signal} \;\propto\; \#\{\,k : \text{HbA1c} \ge \tau_k \,\}$$</div>
+<p style="font-size:13.5px;color:var(--ink-soft);margin:-4px 0 12px">The contribution grows with the <b>number of cut-points \(\tau_k\) cleared</b>, not with the value itself.</p>
+<p class="why"><b>Severity is recorded as a count of thresholds crossed, not as a distance.</b> The member at 8.0 clears two of these four; the member at 14.0 clears all four and accumulates a higher score. Severity survives — but in steps rather than smoothly.</p>
+
+<div class="worked">
+  <span class="k">The behaviour in one line</span>
+  The engine asks <b>"which side of the line?"</b>, never <b>"how far past it?"</b> — repeated across many different lines. The effect of any single extreme value is capped, which makes the engine immune to typos and outliers: a reading entered as 80 instead of 8.0 lands in exactly the same place and cannot distort the result.
+</div>
+
+<div class="callout warn">
+  <span class="k">A caveat specific to our data</span>
+  In the real records HbA1c turns out to be a weak parameter, for a reason unrelated to any of the above: <b>168 of 576 training rows contain exactly 5.4</b> — a placeholder written in where the test was not actually performed. Roughly 30% of that column is a constant pretending to be a measurement, which is why the engine's treatment of HbA1c came out clinically backwards in every version. The handling described here is correct; the input data is what limits it.
+</div>
+
+<h2>Summary</h2>
+<table>
+  <tr><th>Question</th><th>Answer</th></tr>
+  <tr><td>When are the weights set?</td><td>Once, during offline training. Frozen at scoring time — an upload changes nothing.</td></tr>
+  <tr><td>What are the weights?</td><td>Cut-points and leaf values spread across 400 small decision trees, not one number per parameter.</td></tr>
+  <tr><td>How do they change during training?</td><td>Broad patterns first with large corrections, then combinations, then small refinements as error runs out.</td></tr>
+  <tr><td>How is a probability decided?</td><td>Sum the 400 leaf values, convert to a percentage, then correct it against members held back from training.</td></tr>
+  <tr><td>HbA1c of 8?</td><td>Kept as measured and expanded into six signals. Severity is recorded as thresholds crossed, not distance travelled.</td></tr>
+</table>
+
+<div class="dark">
+  <span class="k">Scope note</span>
+  <p>Everything above describes machinery that is built, tested and reproducible from saved files. It is not a claim that the machinery finds a usable signal in the data we currently hold — the sealed evaluation on real members, with the coverage artefact removed, performed no better than chance.</p>
+  <p>The weighting, correction and threshold logic are all sound. The limitation is the <b>question being asked</b>: acute hospitalisation in a young workforce is driven largely by accidents, infections and maternity, which annual blood chemistry is not designed to foresee.</p>
+</div>
+
+<footer>
+  <span>HealthBridge · Claim Propensity &amp; Group Pricing Engine</span>
+  <span>Weights · correction · probability decision · worked example</span>
+</footer>
+
+</div>
+</body>
+</html>
