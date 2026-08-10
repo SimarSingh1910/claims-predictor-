@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claim Engine — Worked Clinical Example</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12242B; --ink-soft:#44595F; --paper:#EDF2F2; --card:#FCFDFD;
+    --line:#CBD7D8; --teal:#0E7C75; --teal-deep:#0A5A55; --teal-soft:#E3F3F0;
+    --amber:#B4701C; --amber-soft:#F9EEDB; --amber-line:#E5D3B4;
+    --violet:#5B4A8A; --violet-soft:#EEEAF5; --violet-line:#D9D2E8;
+    --coral:#A6402F; --coral-soft:#F9E9E5; --coral-line:#E9C8C0;
+    --green:#1F7A47; --green-soft:#E5F1E9; --green-line:#C3DECD;
+    --disp:'Space Grotesk',system-ui,sans-serif; --body:'Inter',system-ui,sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box} html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:0 26px}
+
+  header{padding:52px 0 26px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal-deep);margin:0 0 14px;display:flex;gap:9px;align-items:center}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--teal)}
+  h1{font-family:var(--disp);font-weight:700;font-size:clamp(26px,4.2vw,38px);line-height:1.08;letter-spacing:-.02em;margin:0 0 14px}
+  .lede{font-size:17px;color:var(--ink-soft);max-width:68ch;margin:0}
+
+  nav.toc{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:15px 18px;margin:24px 0 0;display:flex;flex-wrap:wrap;gap:8px}
+  nav.toc a{font-family:var(--mono);font-size:11.5px;text-decoration:none;color:var(--teal-deep);background:var(--teal-soft);border:1px solid #C6E3DC;border-radius:20px;padding:6px 12px}
+  nav.toc a:hover{background:var(--teal);color:#fff}
+
+  h2{font-family:var(--disp);font-weight:600;font-size:25px;letter-spacing:-.01em;margin:48px 0 6px;padding-top:6px}
+  h3{font-family:var(--disp);font-weight:600;font-size:18px;margin:28px 0 8px}
+  .sub{color:var(--ink-soft);margin:0 0 20px;font-size:15.5px;max-width:74ch}
+  p{font-size:15.5px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin:0 0 15px}
+  .card.v{border-left:4px solid var(--violet)} .card.t{border-left:4px solid var(--teal)}
+  .card.a{border-left:4px solid var(--amber)} .card.c{border-left:4px solid var(--coral)}
+  .card .ct{font-family:var(--disp);font-weight:600;font-size:17px;margin:0 0 9px}
+  .card p{margin:0 0 10px}.card p:last-child{margin:0}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14.5px;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  th{background:#E5EEEE;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--teal-deep);text-align:left;padding:10px 13px;font-weight:500}
+  td{padding:10px 13px;border-top:1px solid var(--line);vertical-align:top}
+  td.num,th.num{text-align:right;font-family:var(--mono)}
+  tr.ab td{background:#FDF0EC}
+  tr.norm td{background:var(--green-soft)}
+  tr.hi td{background:#FDF4E8;font-weight:500}
+
+  figure{margin:20px 0;padding:18px 14px 12px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-size:13px;color:var(--ink-soft);text-align:center;margin-top:12px;font-style:italic}
+
+  /* svg tokens */
+  .nb{fill:#FBFDFD;stroke:var(--line)}
+  .nb-gray{fill:#F2F5F5;stroke:#C6D2D3}
+  .nb-teal{fill:var(--teal-soft);stroke:#BEDDD7}
+  .nb-amber{fill:var(--amber-soft);stroke:var(--amber-line)}
+  .nb-coral{fill:var(--coral-soft);stroke:var(--coral-line)}
+  .nb-violet{fill:var(--violet-soft);stroke:var(--violet-line)}
+  .nb-green{fill:var(--green-soft);stroke:var(--green-line)}
+  .th-s{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;fill:var(--ink)}
+  .ts-s{font-family:'Inter',sans-serif;font-size:12px;fill:var(--ink-soft)}
+  .tm-s{font-family:'IBM Plex Mono',monospace;font-size:11.5px;fill:var(--teal-deep)}
+  .arw{stroke:#8FA5A8;stroke-width:1.6;fill:none}
+
+  .patients{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+  @media(max-width:680px){.patients{grid-template-columns:1fr}}
+  .pt{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .pt .ph{padding:13px 18px;border-bottom:1px solid var(--line)}
+  .pt.a .ph{background:var(--green-soft);border-bottom-color:var(--green-line)}
+  .pt.b .ph{background:var(--coral-soft);border-bottom-color:var(--coral-line)}
+  .pt .pn{font-family:var(--disp);font-weight:600;font-size:16px}
+  .pt .pd{font-size:13px;color:var(--ink-soft);margin-top:2px}
+  .pt .pb{padding:14px 18px}
+  .pt dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13.5px}
+  .pt dt{font-family:var(--mono);color:var(--ink-soft);white-space:nowrap}
+  .pt dd{margin:0;font-family:var(--mono);text-align:right}
+  .pt dd.ab{color:var(--coral);font-weight:500}
+  .pt .res{margin-top:14px;padding-top:13px;border-top:1px dashed var(--line);text-align:center}
+  .pt .rv{font-family:var(--disp);font-weight:700;font-size:30px;line-height:1}
+  .pt.a .rv{color:var(--green)} .pt.b .rv{color:var(--coral)}
+  .pt .rl{font-size:12px;color:var(--ink-soft);margin-top:5px}
+
+  .ladder{margin:16px 0}
+  .rung{display:flex;align-items:center;gap:12px;padding:11px 16px;border:1px solid var(--line);border-bottom:none;font-size:14px;background:var(--card)}
+  .rung:first-child{border-radius:9px 9px 0 0}
+  .rung:last-child{border-bottom:1px solid var(--line);border-radius:0 0 9px 9px}
+  .rung .rn{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);flex:0 0 78px}
+  .rung .rr{flex:1}
+  .rung .rc{font-family:var(--mono);font-size:12px;flex:0 0 92px;text-align:right}
+  .rung.on{background:var(--coral-soft)} .rung.on .rc{color:var(--coral);font-weight:500}
+  .rung.off .rc{color:var(--ink-soft)}
+
+  .why{border-left:2px solid var(--line);padding-left:14px;color:var(--ink-soft);font-size:14.5px;margin:12px 0 0}
+  .why b{color:var(--ink)}
+
+  .callout{border-radius:11px;padding:16px 20px;margin:16px 0;font-size:15px}
+  .callout.warn{background:var(--amber-soft);border:1px solid var(--amber-line);color:#5e3a0e}
+  .callout.key{background:var(--coral-soft);border:1px solid var(--coral-line);color:#7a2b1d}
+  .callout.note{background:var(--violet-soft);border:1px solid var(--violet-line);color:#3f3364}
+  .callout .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;display:block;margin:0 0 8px;opacity:.85}
+
+  .eq{background:#F1F6F6;border:1px dashed var(--line);border-radius:8px;padding:12px 18px;margin:13px 0;font-family:var(--mono);font-size:13.5px;color:var(--teal-deep);text-align:center}
+
+  .qa{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:16px 20px;margin:0 0 12px}
+  .qa .q{font-family:var(--disp);font-weight:600;font-size:16px;margin:0 0 7px;color:var(--teal-deep)}
+  .qa p{margin:0;font-size:15px}
+
+  .dark{background:var(--ink);color:#DBE7E7;border-radius:12px;padding:22px 24px;margin:20px 0}
+  .dark .k{font-family:var(--mono);color:#63CBC1;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;display:block;margin:0 0 11px}
+  .dark b{color:#fff} .dark p{margin:0 0 10px;font-size:15px} .dark p:last-child{margin:0}
+
+  footer{font-family:var(--mono);font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding:18px 0 56px;margin-top:44px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  @media print{body{background:#fff}figure{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow"><span class="dot"></span> HealthBridge · Claim Engine · Clinical Walkthrough</p>
+  <h1>Following one patient through the engine, step by step</h1>
+  <p class="lede">The closest familiar analogue is QRISK or FRAX — routine clinical measurements in, a probability out. The endpoint here is a hospitalisation claim within twelve months. This document traces a single patient the whole way through.</p>
+  <nav class="toc">
+    <a href="#cases">the two patients</a>
+    <a href="#flow">the walkthrough</a>
+    <a href="#grade">grading a value</a>
+    <a href="#comorb">comorbidity</a>
+    <a href="#cost">severity &amp; cost</a>
+    <a href="#qa">likely questions</a>
+    <a href="#evidence">does it work?</a>
+  </nav>
+</header>
+
+<h2 id="cases">1 · Two patients</h2>
+<p class="sub">Same engine, same panel, two very different clinical pictures.</p>
+
+<div class="patients">
+  <div class="pt a">
+    <div class="ph"><div class="pn">Patient A</div><div class="pd">47 M · employee · no known comorbidity</div></div>
+    <div class="pb">
+      <dl>
+        <dt>BMI</dt><dd>22.5</dd>
+        <dt>BP</dt><dd>124 / 78</dd>
+        <dt>HbA1c</dt><dd>5.5 %</dd>
+        <dt>FBS</dt><dd>103.6</dd>
+        <dt>Creatinine</dt><dd>0.95</dd>
+        <dt>eGFR</dt><dd>92</dd>
+        <dt>LDL</dt><dd>108</dd>
+        <dt>Haemoglobin</dt><dd>14.6</dd>
+      </dl>
+      <div class="res"><div class="rv">12.5%</div>
+        <div class="rl">below the 15.4% workforce average<br>0 of 8 abnormal flags</div></div>
+    </div>
+  </div>
+
+  <div class="pt b">
+    <div class="ph"><div class="pn">Patient B</div><div class="pd">58 M · employee · T2DM, hypertension</div></div>
+    <div class="pb">
+      <dl>
+        <dt>BMI</dt><dd class="ab">31.4</dd>
+        <dt>BP</dt><dd class="ab">148 / 94</dd>
+        <dt>HbA1c</dt><dd class="ab">8.0 %</dd>
+        <dt>FBS</dt><dd class="ab">168</dd>
+        <dt>Creatinine</dt><dd class="ab">1.62</dd>
+        <dt>eGFR</dt><dd class="ab">46</dd>
+        <dt>LDL</dt><dd class="ab">172</dd>
+        <dt>Haemoglobin</dt><dd class="ab">11.2</dd>
+      </dl>
+      <div class="res"><div class="rv">~3×</div>
+        <div class="rl">higher than Patient A<br>7 of 8 flags · illustrative</div></div>
+    </div>
+  </div>
+</div>
+
+<p class="why"><b>Patient A's 12.5% is a real engine output.</b> Patient B is a constructed illustration — the figure shown indicates direction and rough scale, not a measured result for a specific individual.</p>
+
+<h2 id="flow">2 · Patient B through the engine</h2>
+
+<figure>
+<svg viewBox="0 0 700 726" role="img" aria-label="Seven-stage flow of a patient through the engine">
+  <text x="350" y="16" text-anchor="middle" class="ts-s">Patient B · 58 M · known T2DM and hypertension</text>
+
+  <rect x="130" y="32" width="440" height="58" rx="8" class="nb-gray"/>
+  <text x="350" y="55" text-anchor="middle" class="th-s">1 · Annual check-up results arrive</text>
+  <text x="350" y="75" text-anchor="middle" class="tm-s">HbA1c 8.0 · BP 148/94 · creatinine 1.62 · LDL 172</text>
+  <path d="M350 90 L350 116" class="arw" marker-end="url(#a1)"/>
+
+  <rect x="130" y="118" width="440" height="58" rx="8" class="nb-amber"/>
+  <text x="350" y="141" text-anchor="middle" class="th-s">2 · Are the six essential values present?</text>
+  <text x="350" y="161" text-anchor="middle" class="ts-s">age, sex, HbA1c, FBS, creatinine, cholesterol — all present</text>
+  <path d="M350 176 L350 202" class="arw" marker-end="url(#a1)"/>
+
+  <rect x="130" y="204" width="440" height="58" rx="8" class="nb-teal"/>
+  <text x="350" y="227" text-anchor="middle" class="th-s">3 · Calculate what was not measured</text>
+  <text x="350" y="247" text-anchor="middle" class="tm-s">BMI 31.4 · eGFR 46 (CKD-EPI) · est. avg glucose 182.9</text>
+  <path d="M350 262 L350 288" class="arw" marker-end="url(#a1)"/>
+
+  <rect x="130" y="290" width="440" height="58" rx="8" class="nb-coral"/>
+  <text x="350" y="313" text-anchor="middle" class="th-s">4 · Grade each value against clinical cut-points</text>
+  <text x="350" y="333" text-anchor="middle" class="ts-s">7 of 8 abnormal flags raised</text>
+  <path d="M350 348 L350 374" class="arw" marker-end="url(#a1)"/>
+
+  <rect x="130" y="376" width="440" height="58" rx="8" class="nb-coral"/>
+  <text x="350" y="399" text-anchor="middle" class="th-s">5 · Look for combinations that compound</text>
+  <text x="350" y="419" text-anchor="middle" class="ts-s">dysglycaemia × renal impairment × hypertension — all met</text>
+  <path d="M350 434 L350 460" class="arw" marker-end="url(#a1)"/>
+
+  <rect x="130" y="462" width="440" height="58" rx="8" class="nb-violet"/>
+  <text x="350" y="485" text-anchor="middle" class="th-s">6 · 400 small rules each cast a vote</text>
+  <text x="350" y="505" text-anchor="middle" class="ts-s">votes summed into a single running score</text>
+  <path d="M350 520 L350 546" class="arw" marker-end="url(#a1)"/>
+
+  <rect x="130" y="548" width="440" height="58" rx="8" class="nb-violet"/>
+  <text x="350" y="571" text-anchor="middle" class="th-s">7 · Convert to a probability, then correct it</text>
+  <text x="350" y="591" text-anchor="middle" class="ts-s">corrected against members held back from training</text>
+  <path d="M350 606 L350 632" class="arw" marker-end="url(#a1)"/>
+
+  <rect x="185" y="634" width="330" height="52" rx="8" class="nb-green"/>
+  <text x="350" y="654" text-anchor="middle" class="th-s">Risk of hospitalisation in 12 months</text>
+  <text x="350" y="673" text-anchor="middle" class="ts-s">Patient A, all values normal → 12.5%</text>
+
+  <defs><marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#8FA5A8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+</svg>
+<figcaption>Stages 4 and 5 carry the clinical reasoning; the rest is bookkeeping.</figcaption>
+</figure>
+
+<h3>Stage 4 in detail — grading each value</h3>
+<table>
+  <tr><th>Parameter</th><th class="num">Patient B</th><th class="num">Cut-point</th><th>Flag</th></tr>
+  <tr class="ab"><td>HbA1c</td><td class="num">8.0 %</td><td class="num">≥ 6.5</td><td>raised</td></tr>
+  <tr class="ab"><td>Systolic BP</td><td class="num">148</td><td class="num">≥ 140</td><td>raised</td></tr>
+  <tr class="ab"><td>BMI</td><td class="num">31.4</td><td class="num">≥ 30</td><td>raised</td></tr>
+  <tr class="ab"><td>eGFR</td><td class="num">46</td><td class="num">&lt; 60</td><td>raised</td></tr>
+  <tr class="ab"><td>LDL</td><td class="num">172</td><td class="num">≥ 160</td><td>raised</td></tr>
+  <tr class="ab"><td>Haemoglobin</td><td class="num">11.2</td><td class="num">&lt; 12</td><td>raised</td></tr>
+  <tr class="ab"><td>Triglycerides</td><td class="num">190</td><td class="num">≥ 150</td><td>raised</td></tr>
+  <tr class="norm"><td>Uric acid</td><td class="num">6.4</td><td class="num">&gt; 7.0</td><td>not raised</td></tr>
+</table>
+<p class="why">Seven of eight. Patient A raised none. That count becomes a feature in its own right, alongside the individual flags.</p>
+
+<h2 id="comorb">3 · Stage 5 — why combinations are treated separately</h2>
+<p class="sub">This is the design decision most likely to interest a clinician, because it reflects how these conditions actually behave together.</p>
+
+<figure>
+<svg viewBox="0 0 700 300" role="img" aria-label="Three findings converging into one recognised pathway">
+  <rect x="24" y="30" width="168" height="50" rx="8" class="nb-coral"/>
+  <text x="108" y="49" text-anchor="middle" class="th-s">HbA1c 8.0</text>
+  <text x="108" y="68" text-anchor="middle" class="ts-s">dysglycaemia</text>
+
+  <rect x="24" y="100" width="168" height="50" rx="8" class="nb-coral"/>
+  <text x="108" y="119" text-anchor="middle" class="th-s">eGFR 46</text>
+  <text x="108" y="138" text-anchor="middle" class="ts-s">renal impairment</text>
+
+  <rect x="24" y="170" width="168" height="50" rx="8" class="nb-coral"/>
+  <text x="108" y="189" text-anchor="middle" class="th-s">BP 148/94</text>
+  <text x="108" y="208" text-anchor="middle" class="ts-s">hypertension</text>
+
+  <path d="M192 55 L232 55 L232 125" class="arw"/>
+  <path d="M192 125 L232 125" class="arw"/>
+  <path d="M192 195 L232 195 L232 125" class="arw"/>
+  <path d="M232 125 L282 125" class="arw" marker-end="url(#a2)"/>
+
+  <rect x="286" y="92" width="180" height="66" rx="8" class="nb-violet"/>
+  <text x="376" y="114" text-anchor="middle" class="th-s">All three present</text>
+  <text x="376" y="135" text-anchor="middle" class="ts-s">diabetic nephropathy</text>
+  <text x="376" y="151" text-anchor="middle" class="ts-s">pathway</text>
+
+  <path d="M466 125 L508 125" class="arw" marker-end="url(#a2)"/>
+
+  <rect x="512" y="92" width="164" height="66" rx="8" class="nb-amber"/>
+  <text x="594" y="114" text-anchor="middle" class="th-s">Weighted above</text>
+  <text x="594" y="135" text-anchor="middle" class="ts-s">the sum of the three</text>
+  <text x="594" y="151" text-anchor="middle" class="ts-s">taken separately</text>
+
+  <text x="350" y="252" text-anchor="middle" class="ts-s">An additive score adds three fixed amounts and stops there.</text>
+  <text x="350" y="272" text-anchor="middle" class="ts-s">A rule-based engine recognises the conjunction as its own trajectory.</text>
+
+  <defs><marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#8FA5A8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+</svg>
+<figcaption>Diabetic nephropathy with concurrent hypertension is a recognised trajectory, not three independent risks.</figcaption>
+</figure>
+
+<p>Four such combinations are encoded explicitly:</p>
+<table>
+  <tr><th>Combination</th><th>Clinical rationale</th></tr>
+  <tr><td>Dysglycaemia × renal impairment</td><td>diabetic nephropathy pathway</td></tr>
+  <tr><td>Dysglycaemia × hypertension × hypertriglyceridaemia</td><td>metabolic syndrome cluster</td></tr>
+  <tr><td>Hypertension × renal impairment</td><td>hypertensive nephrosclerosis</td></tr>
+  <tr><td>Obesity × dysglycaemia</td><td>insulin-resistance phenotype</td></tr>
+</table>
+
+<h2 id="grade">4 · How severity of a single value is graded</h2>
+<p class="sub">The question clinicians ask most: what does the engine actually do with an HbA1c of 8?</p>
+
+<p><b>It is neither rejected nor capped.</b> A value of 8% is a genuine measurement of poor glycaemic control. The engine represents it in five ways at once, because no single representation captures everything clinically relevant:</p>
+
+<table>
+  <tr><th>Representation</th><th class="num">Value</th><th>What it encodes</th></tr>
+  <tr><td>Raw measurement</td><td class="num">8.0</td><td>the magnitude itself</td></tr>
+  <tr class="ab"><td>Diabetic-range flag</td><td class="num">1</td><td>crosses the 6.5% diagnostic threshold</td></tr>
+  <tr><td>Pre-diabetic flag</td><td class="num">0</td><td>past that band, into frank diabetes</td></tr>
+  <tr><td>Abnormality count</td><td class="num">+1</td><td>one of eight abnormal findings met</td></tr>
+  <tr><td>Estimated average glucose</td><td class="num">182.9</td><td>28.7 × 8.0 − 46.7 mg/dL</td></tr>
+</table>
+
+<h3>Severity is counted, not measured</h3>
+<p>Each rule asks a yes/no question — <em>above or below this cut-point?</em> — never <em>how far above?</em> Severity is captured because <b>different rules use different cut-points</b>, and a patient clears as many as their value permits:</p>
+
+<div class="ladder">
+  <div class="rung on"><span class="rn">rule 12</span><span class="rr">HbA1c above 6.45 %</span><span class="rc">crossed</span></div>
+  <div class="rung on"><span class="rn">rule 87</span><span class="rr">HbA1c above 7.20 %</span><span class="rc">crossed</span></div>
+  <div class="rung off"><span class="rn">rule 203</span><span class="rr">HbA1c above 9.10 %</span><span class="rc">not crossed</span></div>
+  <div class="rung off"><span class="rn">rule 341</span><span class="rr">HbA1c above 11.5 %</span><span class="rc">not crossed</span></div>
+</div>
+
+<div class="eq">severity contribution &nbsp;∝&nbsp; number of cut-points crossed</div>
+
+<p class="why"><b>The honest clinical consequence.</b> Severity is graded in <b>steps rather than continuously</b>. Two patients at 8.0% and 8.9% are treated identically, because no rule separates them — a genuine loss of granularity. The compensating benefit is robustness: a transcription error of 80 instead of 8.0 lands on exactly the same rungs and cannot distort the result, which matters when data arrives from many laboratories.</p>
+
+<h2 id="cost">5 · "Severity" in the insurance sense</h2>
+<p class="sub">The word means something specific here, and only half of it currently exists.</p>
+
+<table>
+  <tr><th>Component</th><th>Question</th><th>Status</th></tr>
+  <tr class="norm"><td><b>Frequency</b></td><td>How likely is a claim?</td><td><b>Built</b> — everything above</td></tr>
+  <tr class="ab"><td><b>Severity</b></td><td>Given a claim, how expensive?</td><td><b>Not built</b> — planned next</td></tr>
+</table>
+
+<div class="eq">expected cost &nbsp;=&nbsp; probability of claim &nbsp;×&nbsp; expected cost per claim</div>
+
+<p>When the severity component is built it will predict a rupee amount rather than a probability, trained on claim amounts already held — where the distribution is markedly skewed:</p>
+
+<table>
+  <tr><th>Claim type</th><th class="num">n</th><th class="num">median</th><th class="num">maximum</th></tr>
+  <tr class="hi"><td>Hospitalisation</td><td class="num">174</td><td class="num">₹42,959</td><td class="num">₹4,05,102</td></tr>
+  <tr><td>Daycare</td><td class="num">19</td><td class="num">₹10,850</td><td class="num">₹92,525</td></tr>
+  <tr><td>Dental benefit</td><td class="num">314</td><td class="num">₹4,950</td><td class="num">₹52,000</td></tr>
+  <tr><td>Health check-up</td><td class="num">682</td><td class="num">₹2,000</td><td class="num">₹10,200</td></tr>
+</table>
+
+<div class="callout note">
+  <span class="k">A finding that needs no model at all</span>
+  Mean claim cost by relationship: <b>parents ₹76,590</b>, in-laws ₹49,903, spouse ₹21,123, <b>employee ₹7,885</b>. Covered parents cost roughly <b>ten times</b> an employee per claim — consistent with the age distribution and with the general pattern that parental cover drives group utilisation. A direct observation from the claims register, not a prediction.
+</div>
+
+<h2 id="qa">6 · Questions a clinician usually asks</h2>
+
+<div class="qa"><div class="q">What if the HbA1c were 12 rather than 8?</div>
+<p>Very little would change. Each rule asks which side of a cut-point the value falls, not how far past. A value of 12 would clear one or two additional rungs and score somewhat higher — but 8.0% and 8.9% are treated identically. Severity is graded in steps.</p></div>
+
+<div class="qa"><div class="q">What if a lab value is missing?</div>
+<p>If it is one of the six essential values, the engine <b>refuses to score</b> and reports the patient as unscored with the reason. It does not substitute a population average — an invented creatinine produces a confident number about kidney function nobody measured.</p></div>
+
+<div class="qa"><div class="q">Is this applied to individual patients?</div>
+<p>No. Individual probabilities are averaged into age-and-sex cohorts, and the cohort figure prices the group policy. <b>No clinical decision is taken about any individual.</b></p></div>
+
+<div class="qa"><div class="q">Where do the cut-points come from?</div>
+<p>Two sources. The eight abnormal-range flags use established clinical thresholds — HbA1c 6.5, BP 140/90, eGFR 60, BMI 30. The cut-points inside the 400 rules are learned from the training data, which is why they land at values like 6.45 or 7.20 rather than round numbers.</p></div>
+
+<div class="qa"><div class="q">Can it explain an individual prediction?</div>
+<p>Partially. The engine can report which parameters contributed most across the workforce, and which flags a given patient raised. It cannot produce a clean per-patient causal account, because the score is spread across 400 overlapping rules.</p></div>
+
+<h2 id="evidence">7 · Does it work? — the honest answer</h2>
+
+<div class="callout key">
+  <span class="k">The headline result</span>
+  On real member data, once a confounder was properly removed, the engine performed <b>no better than chance</b> at predicting hospitalisation. The confidence interval brackets random guessing.
+</div>
+
+<h3>What the confounder was</h3>
+<p>Early results looked considerably better, and the reason turned out to be a <b>coverage artefact rather than a clinical signal</b>. Covered parents appear in the dataset almost exclusively when hospitalised — they rarely attend routine check-ups. The engine therefore learned, quite correctly for this dataset, that "is a covered parent" predicts hospitalisation. That is a statement about <b>who attends screening</b>, not about physiology.</p>
+<p class="why"><b>Removing it required excluding those patients entirely, not merely removing the relationship variable</b> — age alone reconstructs "is a parent" with an AUC of 0.88. Once dependants were excluded by row, performance fell to chance.</p>
+
+<h3>Why this is clinically unsurprising</h3>
+<p>The cohort is a young corporate workforce, mean age approximately 33. Hospitalisation in such a population is dominated by:</p>
+<table>
+  <tr><th>Cause</th><th>Foreseeable from an annual blood panel?</th></tr>
+  <tr><td>Obstetric — 27% of admissions were maternity-related</td><td>No — a planned event, unrelated to metabolic markers</td></tr>
+  <tr><td>Trauma and accidents</td><td>No</td></tr>
+  <tr><td>Acute infection</td><td>No</td></tr>
+  <tr><td>Chronic disease decompensation</td><td>In principle yes — but uncommon at this age</td></tr>
+</table>
+<p>Annual metabolic screening is designed to detect <em>chronic disease trajectory over years</em>, not <em>acute admission within twelve months</em>. The absence of signal is a mismatch between instrument and endpoint, not a failure of the instrument.</p>
+
+<div class="callout warn">
+  <span class="k">A data-quality issue worth knowing</span>
+  HbA1c is unreliable in our records for a non-statistical reason: <b>168 of 576 rows contain exactly 5.4%</b>, against only 38 distinct values in the whole column. That is a default written in where the assay was not performed. Roughly 30% of the column is a placeholder — which is why HbA1c behaved counter-clinically in every model version, appearing to <em>reduce</em> risk as it rose. The engine's handling is correct; the input is not.
+</div>
+
+<h2>Summary for a clinical reader</h2>
+<table>
+  <tr><td><b>What it is</b></td><td>A population risk calculator, structurally similar to QRISK, with hospitalisation claim as the endpoint</td></tr>
+  <tr><td><b>Inputs</b></td><td>Standard AHC panel — demographics, vitals, glycaemic, lipid, renal, hepatic, haematology, thyroid</td></tr>
+  <tr><td><b>Output</b></td><td>A calibrated probability per person, aggregated to a workforce for premium setting</td></tr>
+  <tr><td><b>Abnormal values</b></td><td>Kept as measured; graded by how many clinical cut-points they cross</td></tr>
+  <tr><td><b>Comorbidity</b></td><td>Represented as conjunctions, so combinations can exceed the sum of their parts</td></tr>
+  <tr><td><b>Severity (cost)</b></td><td>Not yet built — the frequency half only</td></tr>
+  <tr><td><b>Validation</b></td><td>At chance once the coverage confounder was removed; reported as a null</td></tr>
+  <tr><td><b>Clinical use</b></td><td><b>None.</b> No individual clinical decision rests on this output</td></tr>
+</table>
+
+<div class="dark">
+  <span class="k">Where this leaves the work</span>
+  <p>The pipeline — ingestion, clinical feature derivation, calibration, and evaluation against pre-registered stopping rules — is complete and reproducible. What it has established is a well-characterised <b>negative result</b>: annual check-up biochemistry does not predict twelve-month hospitalisation in this workforce, and the apparent signal in earlier analyses was a screening-attendance artefact.</p>
+  <p>The next component is <b>cost given a claim</b>, where the drivers are demographic and diagnostic rather than biochemical, and where the data does carry genuine signal.</p>
+</div>
+
+<footer>
+  <span>HealthBridge · Claim Propensity &amp; Group Pricing Engine</span>
+  <span>Clinical walkthrough · not a diagnostic instrument</span>
+</footer>
+
+</div>
+</body>
+</html>
