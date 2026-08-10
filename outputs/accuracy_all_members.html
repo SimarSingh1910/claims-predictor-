@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accuracy Figures — All Members</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12242B; --ink-soft:#44595F; --paper:#EDF2F2; --card:#FCFDFD;
+    --line:#CBD7D8; --teal:#0E7C75; --teal-deep:#0A5A55; --teal-soft:#E3F3F0;
+    --amber:#B4701C; --amber-soft:#F9EEDB; --amber-line:#E5D3B4;
+    --coral:#A6402F; --coral-soft:#F9E9E5; --coral-line:#E9C8C0;
+    --green:#1F7A47; --green-soft:#E5F1E9; --green-line:#C3DECD;
+    --disp:'Space Grotesk',system-ui,sans-serif; --body:'Inter',system-ui,sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px;margin:0 auto;padding:0 26px}
+
+  header{padding:46px 0 22px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal-deep);margin:0 0 12px}
+  h1{font-family:var(--disp);font-weight:700;font-size:clamp(24px,4vw,34px);line-height:1.1;letter-spacing:-.02em;margin:0 0 12px}
+  .lede{font-size:16px;color:var(--ink-soft);max-width:62ch;margin:0}
+
+  h2{font-family:var(--disp);font-weight:600;font-size:21px;margin:38px 0 5px}
+  .sub{color:var(--ink-soft);margin:0 0 14px;font-size:14.5px;max-width:68ch}
+
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14.5px;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  th{background:#E5EEEE;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--teal-deep);text-align:left;padding:9px 12px;font-weight:500}
+  td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:middle}
+  td.num,th.num{text-align:right;font-family:var(--mono)}
+  tr.hi td{background:#FDF4E8;font-weight:500}
+  td.gl{color:var(--ink-soft)}
+
+  .hero{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--teal);border-radius:12px;padding:24px;margin:22px 0;text-align:center}
+  .hero .v{font-family:var(--disp);font-weight:700;font-size:52px;line-height:1;color:var(--teal)}
+  .hero .l{font-size:14.5px;color:var(--ink-soft);margin-top:10px}
+  .hero .s{font-size:13px;color:var(--ink-soft);margin-top:6px}
+
+  .warn{background:var(--coral-soft);border:1px solid var(--coral-line);border-radius:11px;padding:16px 20px;margin:20px 0;font-size:14.8px;color:#7a2b1d}
+  .warn .k{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;display:block;margin:0 0 8px;opacity:.85}
+  .warn table{margin:11px 0 9px;background:rgba(255,255,255,.6)}
+  .warn th{background:rgba(255,255,255,.5);color:#7a2b1d}
+
+  .note{background:var(--amber-soft);border:1px solid var(--amber-line);border-radius:11px;padding:14px 18px;margin:16px 0;font-size:14.5px;color:#5e3a0e}
+  .note .k{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;display:block;margin:0 0 7px;opacity:.85}
+
+  .ok{background:var(--green-soft);border:1px solid var(--green-line);border-radius:11px;padding:14px 18px;margin:16px 0;font-size:14.5px;color:#155434}
+  .ok .k{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;display:block;margin:0 0 7px;opacity:.85}
+
+  .why{border-left:2px solid var(--line);padding-left:13px;color:var(--ink-soft);font-size:14px;margin:11px 0 0}
+  .why b{color:var(--ink)}
+
+  footer{font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);border-top:1px solid var(--line);padding:16px 0 50px;margin-top:38px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  @media print{body{background:#fff}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">HealthBridge · Claim Engine · All Members</p>
+  <h1>Accuracy figures</h1>
+  <p class="lede">Trained and tested on 1,215 real members — no synthetic data. The test set was opened once, after every decision was locked.</p>
+</header>
+
+<div class="hero">
+  <div class="v">46.1%</div>
+  <div class="l">at finding the members who were hospitalised</div>
+  <div class="s">against a <b>14.3%</b> guessing line — <b>3.2× better than chance</b></div>
+</div>
+
+<div class="warn">
+  <span class="k">Read this before quoting any percentage</span>
+  If you measure "<b>what percentage of predictions were correct</b>" — the everyday meaning of accuracy — a model that simply says <b>"nobody will be hospitalised"</b> for every person scores <b>85.75%</b>.<br><br>
+  That model never identifies anybody and is useless, yet it scores in the high eighties, because hospitalisation is rare. <b>"86% accurate" would be a true sentence and a badly misleading one.</b> Every figure below measures something more demanding: how well the model picks out the people who actually were hospitalised.
+</div>
+
+<h2>Main score — training vs testing</h2>
+<p class="sub">Compare against the 14.3% guessing line. Higher is better.</p>
+
+<table>
+  <tr><th>Measurements used</th><th class="num">Training</th><th class="num">Testing</th><th class="num">Guessing</th><th class="num">vs chance</th></tr>
+  <tr class="hi"><td>All 44 measurements</td><td class="num">49.7%</td><td class="num">46.1%</td><td class="num gl">14.3%</td><td class="num">3.2×</td></tr>
+  <tr><td>Core 7 measurements</td><td class="num">45.5%</td><td class="num">43.4%</td><td class="num gl">14.3%</td><td class="num">3.0×</td></tr>
+</table>
+
+<div class="ok">
+  <span class="k">Training and testing agree closely</span>
+  The drop from training to testing is <b>under 4 percentage points</b> in both cases. <b>The model did not overfit</b> — what it learned on the training members carried over to members it had never seen.
+</div>
+
+<p class="why"><b>Using only 7 measurements costs almost nothing.</b> Cutting from 44 measurements to 7 moved the test score from 46.1% to 43.4%. The seven core measurements — age, sex, blood sugar, blood pressure, BMI, kidney function and the count of abnormal findings — carry nearly all of the available signal.</p>
+
+<h2>Sorting accuracy — can it rank people correctly?</h2>
+<p class="sub">Given two members, one hospitalised and one not, how often does the model rank the right one higher? <b>50% is a coin flip.</b></p>
+
+<table>
+  <tr><th>Measure</th><th class="num">Testing</th><th class="num">Uncertainty range</th></tr>
+  <tr class="hi"><td>Sorting accuracy</td><td class="num">70.0%</td><td class="num">61.6 – 79.0%</td></tr>
+</table>
+
+<p class="why">At 70%, the model sorts members reasonably well, and the uncertainty range sits clearly above the 50% coin-flip line. This is the strongest result in the analysis.</p>
+
+<h2>Are the reported percentages trustworthy?</h2>
+<p class="sub">A separate question from ranking: when the engine says "20% chance", does about 20% of that group actually get hospitalised? <b>Lower is better — this is an error measure.</b></p>
+
+<table>
+  <tr><th>Stage</th><th class="num">Error</th></tr>
+  <tr><td>Before correction</td><td class="num">16.6%</td></tr>
+  <tr class="hi"><td>After correction</td><td class="num">10.8%</td></tr>
+  <tr><td>Improvement</td><td class="num">35% better</td></tr>
+</table>
+
+<p class="why">The correction step cut the error by roughly a third, so the percentages the engine reports can be taken at face value.</p>
+
+<h2>The group behind these figures</h2>
+<table>
+  <tr><th>&nbsp;</th><th class="num">Members</th><th class="num">Hospitalised</th><th class="num">Rate</th></tr>
+  <tr><td>Training</td><td class="num">850</td><td class="num">122</td><td class="num">14.35%</td></tr>
+  <tr><td>Testing</td><td class="num">365</td><td class="num">52</td><td class="num">14.25%</td></tr>
+</table>
+
+<div class="note">
+  <span class="k">One caveat that must travel with these numbers</span>
+  This population includes <b>dependants</b> — covered parents and spouses. Dependants appear in the data almost exclusively when hospitalised, because they rarely attend routine check-ups, whereas employees attend annually whether well or unwell.<br><br>
+  A meaningful share of the 46.1% therefore reflects <b>who attends screening</b> rather than who is unwell. Restricted to employees only, the same measure falls to <b>17.6%</b> against an 8.8% guessing line. Both figures are real; they answer different questions.
+</div>
+
+<footer>
+  <span>HealthBridge · Claim Propensity &amp; Group Pricing Engine</span>
+  <span>All members · 1,215 real records · test set scored once</span>
+</footer>
+
+</div>
+</body>
+</html>
